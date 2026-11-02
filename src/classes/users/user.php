@@ -1,10 +1,13 @@
 <?php
+namespace iutnc\touiteur\users;
+
 class User {
     private String $username;
     private array $touites;
     private array $followers;
     private array $follows;
-    private String $creationDate;
+    private array $tagfollows;
+    private array $creationDate;
 
     public function __construct(String $username) {
         $this->username = $username;
@@ -27,6 +30,9 @@ class User {
     }
     public function addfollows($follow) : void {
         $this->follows[] = $follow;
+    }
+    public function addTagfollows($tag) : void {
+        $this->tagfollows[] = $tag;
     }
 
 }
