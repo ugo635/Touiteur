@@ -4,21 +4,23 @@ namespace iutnc\touiteur\touite;
 
 use iutnc\touiteur\exception\InvalidPropertyNameException;
 use iutnc\touiteur\exception\MessageTooBig;
-use function Sodium\add;
+
 
 class Touite {
     private string $message;
     private array $date;
     private string $id;
+    private array $like= [];
+    private int $CompteurLike = 0;
 
-    public function __construct(string $m){
+    public function __construct(string $m) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
-            $this->message = "";
-            $this->date = getDate();
         } else {
             $this->message = $m;
             $this->date = getDate();
+            $this->id = uniqid();
+            $this->CompteurLike = 0;
         }
 
     }
@@ -39,10 +41,26 @@ class Touite {
         return $m[1];
     }
 
-    public function getDate(): array {
-        return $this->date;
+    public function getDate(): string {
+        return $this->date['mday'] . "/" . $this->date['mon'] . "/" . $this->date['year'];
     }
 
-
+    public function addNote(string $userId, bool $isLike): void {
+        if (isset($this->like[$userId])) {
+            if ($isLike) {
+                $this->like[$userId] = 1;
+                $this->CompteurLike++;
+            } else {
+                $this->like[$userId] = -1;
+                $this->CompteurLike--;
+            }
+        } else {
+            if ($isLike) {
+                $this->like[$userId] = 1;                $this->CompteurLike++;
+            } else {
+                $this->like[$userId] = -1;                $this->CompteurLike--;
+            }
+        }
+    }
 }
 
