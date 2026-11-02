@@ -9,6 +9,3 @@ use iutnc\touiteur\render\RendererFactory;
 
 $dispatcher = new Dispatcher();
 $dispatcher->run();
-
-$touite = new Touite("Hello World");
-RendererFactory::getRenderer($touite)->render();

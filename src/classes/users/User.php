@@ -3,7 +3,7 @@ namespace iutnc\touiteur\users;
 
 use iutnc\touiteur\exception\InvalidPropertyNameException;
 
-class user {
+class User {
     private String $username;
     private array $touites;
     private array $followers;

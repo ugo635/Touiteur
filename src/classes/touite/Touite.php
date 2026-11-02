@@ -4,6 +4,7 @@ namespace iutnc\touiteur\touite;
 
 use iutnc\touiteur\exception\InvalidPropertyNameException;
 use iutnc\touiteur\exception\MessageTooBig;
+use iutnc\touiteur\users\User;
 
 
 class Touite {
@@ -11,16 +12,18 @@ class Touite {
     private array $date;
     private string $id;
     private array $like= [];
-    private int $CompteurLike = 0;
+    private int $compteurLike = 0;
+    private User $user;
 
-    public function __construct(string $m) {
+    public function __construct(User $u, string $m) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
         } else {
+            $this->user = $u;
             $this->message = $m;
             $this->date = getDate();
             $this->id = uniqid();
-            $this->CompteurLike = 0;
+            $this->compteurLike = 0;
         }
 
     }
@@ -49,16 +52,16 @@ class Touite {
         if (isset($this->like[$userId])) {
             if ($isLike) {
                 $this->like[$userId] = 1;
-                $this->CompteurLike++;
+                $this->compteurLike++;
             } else {
                 $this->like[$userId] = -1;
-                $this->CompteurLike--;
+                $this->compteurLike--;
             }
         } else {
             if ($isLike) {
-                $this->like[$userId] = 1;                $this->CompteurLike++;
+                $this->like[$userId] = 1;                $this->compteurLike++;
             } else {
-                $this->like[$userId] = -1;                $this->CompteurLike--;
+                $this->like[$userId] = -1;                $this->compteurLike--;
             }
         }
     }
