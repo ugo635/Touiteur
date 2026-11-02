@@ -21,6 +21,7 @@ class Dispatcher {
         <html lang="fr">
             <head>
                 <title>Touiteur</title>
+                <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
             </head>
             <body>
         HTML;
