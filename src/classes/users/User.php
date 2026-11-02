@@ -1,6 +1,8 @@
 <?php
 namespace iutnc\touiteur\users;
 
+use iutnc\touiteur\exception\InvalidPropertyNameException;
+
 class user {
     private String $username;
     private array $touites;
@@ -17,21 +19,21 @@ class user {
         $this->creationDate = getDate();
     }
 
-    public function __get(string $at):mixed {
+    public function __get(string $at): mixed {
         if (property_exists ($this, $at)) return $this->$at;
-        throw new Exception ("$at: invalid property");
+        throw new InvalidPropertyNameException("$at: invalid property");
     }
     
-    public function addTouite($touite) : void {
+    public function addTouite($touite): void {
         $this->touites[] = $touite;
     }
-    public function addfollowers($follower) : void {
+    public function addFollower($follower): void {
         $this->followers[] = $follower;
     }
-    public function addfollows($follow) : void {
+    public function addFollow($follow): void {
         $this->follows[] = $follow;
     }
-    public function addTagfollows($tag) : void {
+    public function addTagFollow($tag): void {
         $this->tagfollows[] = $tag;
     }
 

@@ -11,13 +11,15 @@ class TouiteRenderer implements Renderer {
     }
 
     public function render(): string {
+        $message = $this->touite->message;
+        $date = $this->touite->getDate();
         return <<<HTML
             <div class="w-300 h-150">
                 <span>
-                    $this->touite->message
+                    $message
                 </span>
                 <span class="text-gray-600">
-                    $this->touite->date
+                    $date
                 </span>
             </div>
         HTML;
