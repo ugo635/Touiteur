@@ -15,7 +15,7 @@ class Touite {
     private int $compteurLike = 0;
     private User $user;
 
-    public function __construct(User $u, string $m) {
+    public function __construct(string $m, User $u) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
         } else {

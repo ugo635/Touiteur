@@ -3,7 +3,6 @@
 namespace iutnc\touiteur\render;
 
 use iutnc\touiteur\touite\Touite;
-use iutnc\touiteur\users\User;
 
 class TouiteRenderer implements Renderer {
     private Touite $touite;
@@ -12,7 +11,7 @@ class TouiteRenderer implements Renderer {
     }
 
     public function render(): string {
-        $message = $this->touite->message;
+        $message = /*str_replace("", "", */$this->touite->message/*)*/;
         $date = $this->touite->getDate();
         $username = $this->touite->user->username;
         return <<<HTML
