@@ -1,7 +1,7 @@
 <?php
 namespace iutnc\touiteur\users;
 
-class User {
+class user {
     private String $username;
     private array $touites;
     private array $followers;
