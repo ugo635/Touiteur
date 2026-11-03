@@ -4,6 +4,7 @@ namespace iutnc\touiteur\dispatch;
 
 use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite; // a faire classe
+use iutnc\touiteur\action\Login;
 use iutnc\touiteur\action\Profile; //a faire classe
 
 class Dispatcher {
@@ -15,6 +16,7 @@ class Dispatcher {
 
     public function run(): void {
         $act = match ($this->action) {
+            'login' => new Login(),
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
             default => new DefaultAction(),
