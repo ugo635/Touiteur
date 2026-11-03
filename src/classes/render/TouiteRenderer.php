@@ -11,7 +11,12 @@ class TouiteRenderer implements Renderer {
     }
 
     public function render(int $selector = 1): string {
-        $message = /*str_replace("", "", */$this->touite->message/*)*/; // TODO: Rendre les tags cliquable
+        $message = $message = preg_replace(
+            '/(?<!\w)#(\w+)/u',
+            '<a href="?action=voir-tag&tag=$1" class="text-blue-600 hover:underline">#$1</a>',
+            $this->touite->message
+        );
+
         $date = $this->touite->getDate();
         $id = $this->touite->id;
         $username = $this->touite->user->username;
