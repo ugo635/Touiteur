@@ -14,7 +14,7 @@ class TouiteurRepository {
 
     private function __construct(array $conf)
     {
-        $port = $conf['port'] ?? 3306;
+        $port = $conf['port'] ?? 1521;
         $dsn = "{$conf['driver']}:host={$conf['host']};port={$port};dbname={$conf['database']};charset=utf8mb4";
         $this->pdo = new PDO($dsn, $conf['username'], $conf['password'], [PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_STRINGIFY_FETCHES => false,]);
     }
