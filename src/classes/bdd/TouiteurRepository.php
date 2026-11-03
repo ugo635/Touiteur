@@ -1,21 +1,22 @@
 <?php
 
-namespace iutnc\touiteur\repository;
+namespace iutnc\touiteur\bdd;
 
 use PDO;
 use Exception;
-use DateTime;
 use iutnc\touiteur\touite\Touite;
+use iutnc\touiteur\users\User;
 
-class TouiteRepository {
+class TouiteurRepository
+{
     private PDO $pdo;
-    private static ?TouiteRepository $instance = null;
+    private static ?TouiteurRepository $instance = null;
     private static array $config = [];
 
-    private function __construct(array $conf) {
-        $dsn = "{$conf['driver']}:host={$conf['host']};
-                                  dbname={$conf['database']};
-                                  charset=utf8mb4";
+    private function __construct(array $conf)
+    {
+        $port = $conf['port'] ?? 3306;
+        $dsn = "{$conf['driver']}:host={$conf['host']};port={$port};dbname={$conf['database']};charset=utf8mb4";
         $this->pdo = new PDO($dsn, $conf['username'], $conf['password'], [
             PDO::ATTR_PERSISTENT => true,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -24,7 +25,8 @@ class TouiteRepository {
         ]);
     }
 
-    public static function setConfig(string $file): void {
+    public static function setConfig(string $file): void
+    {
         $conf = parse_ini_file($file);
         if ($conf === false) {
             throw new Exception("Impossible de lire le fichier de configuration : $file");
@@ -32,56 +34,39 @@ class TouiteRepository {
         self::$config = $conf;
     }
 
-    public static function getInstance(): TouiteRepository {
+    public static function getInstance(): TouiteurRepository
+    {
         if (is_null(self::$instance)) {
             if (empty(self::$config)) {
                 throw new Exception("La configuration de la base doit être initialisée avec setConfig()");
             }
-            self::$instance = new TouiteRepository(self::$config);
+            self::$instance = new TouiteurRepository(self::$config);
         }
         return self::$instance;
     }
 
-    /**
-     * Sauvegarde un touite en base de données
-     */
-    public function save(Touite $t): Touite {
-        $query = "INSERT INTO touite (id, message, date_publi, score_like) 
-                  VALUES (:id, :message, :date_publi, :score_like)";
+    public function findTouitesByTag(string $tag): array
+    {
+        // Jointure avec la table user pour récupérer les infos de l'auteur
+        $query = "SELECT t.id, t.message, t.date_publi, t.score_like, t.user_id, u.nom, u.prenom, u.email
+                  FROM touite t
+                  LEFT JOIN user u ON t.user_id = u.id
+                  WHERE t.message LIKE :pattern 
+                  ORDER BY t.date_publi DESC";
 
         $stmt = $this->pdo->prepare($query);
-
-        // Conversion du tableau getdate() ou date courante au format SQL Y-m-d H:i:s
-        $dateArray = $t->getDate();
-        $formattedDate = date('Y-m-d H:i:s', $dateArray[0] ?? time());
-
-        $stmt->execute([
-            'id' => $t->id,
-            'message' => $t->message,
-            'date_publi' => $formattedDate,
-            'score_like' => $t->CompteurLike
-        ]);
-
-        return $t;
-    }
-
-    public function findTouitesByTag(string $tag): array {
-        // Recherche sécurisée avec requête préparée et LIKE
-        $query = "SELECT id, message, date_publi, score_like 
-              FROM touite 
-              WHERE message LIKE :pattern 
-              ORDER BY date_publi DESC";
-
-        $stmt = $this->pdo->prepare($query);
-        // On cherche le tag précédé d'un dièse
         $stmt->execute(['pattern' => '%#' . $tag . '%']);
 
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            // Recréation de l'entité Touite à partir de la ligne SQL
-            $t = new Touite($row['message']);
+            // Création de l'utilisateur associé
+            // Adaptez les paramètres selon le constructeur de votre classe User
+            $user = new User($row['nom'] ?? 'Anonyme',
+                $row['prenom'] ?? '', $row['email'] ?? '');
 
-            // On s'assure que le tag correspond bien exactement via la méthode de l'entité
+            // Instanciation avec le message et l'objet User
+            $t = new Touite($row['message'], $user);
+
             if (in_array(strtolower($tag), array_map('strtolower', $t->getListeTag()))) {
                 $touites[] = $t;
             }

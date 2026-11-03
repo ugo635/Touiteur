@@ -1,41 +1,38 @@
 <?php
 
+require_once __DIR__ . '/src/classes/exception/MessageTooBig.php';
+require_once __DIR__ . '/src/classes/exception/InvalidPropertyNameException.php';
+require_once __DIR__ . '/src/classes/users/User.php';
 require_once __DIR__ . '/src/classes/touite/Touite.php';
-require_once __DIR__ . '/src/classes/bdd/TouiteurBdd.php'; // adaptez selon le nom choisi
+require_once __DIR__ . '/src/classes/bdd/TouiteurRepository.php';
 require_once __DIR__ . '/src/classes/render/Renderer.php';
-require_once __DIR__ . '/src/classes/render/TouiteRenderer.php'; // si vous l'utilisez pour l'affichage
+require_once __DIR__ . '/src/classes/render/TouiteRenderer.php';
 
-use iutnc\touiteur\bdd\TouiteurBdd;
-use iutnc\touiteur\render\TouiteRenderer;
+use iutnc\touiteur\bdd\TouiteurRepository;
 
 // 1. Initialisation de la connexion BD
 try {
-    TouiteurBdd::setConfig(__DIR__ . '/config/config.db.ini');
-    $repo = TouiteurBdd::getInstance();
+    TouiteurRepository::setConfig(__DIR__ . '/config/config.db.ini');
+    $repo = TouiteurRepository::getInstance();
 } catch (Exception $e) {
-    die("Erreur de connexion : " . $e->getMessage());
+    die("Erreur de connexion : " . $e->getMessage() . "\n");
 }
 
-// 2. Définition du tag à rechercher
-$tagRecherche = 'informatique'; // Remplacer par le tag souhaité
+// 2. Tag recherché
+$tagRecherche = 'informatique';
 
-echo "<h1>Touites contenant le tag : #{$tagRecherche}</h1>";
+echo "<h1>Touites contenant le tag : #{$tagRecherche}</h1>\n";
 
-// 3. Récupération des résultats via le Repository
+// 3. Recherche
 $listeTouites = $repo->findTouitesByTag($tagRecherche);
 
-// 4. Affichage des messages
+// 4. Affichage
 if (empty($listeTouites)) {
-    echo "<p>Aucun touite trouvé pour ce tag.</p>";
+    echo "<p>Aucun touite trouvé pour ce tag.</p>\n";
 } else {
-    echo "<ul>";
+    echo "<ul>\n";
     foreach ($listeTouites as $touite) {
-        // Affichage direct du message :
-        echo "<li>" . htmlspecialchars($touite->message) . "</li>";
-
-        // Ou via votre renderer si vous préférez :
-        // $renderer = new TouiteRenderer($touite);
-        // echo $renderer->render(1);
+        echo "<li>" . htmlspecialchars($touite->message) . "</li>\n";
     }
-    echo "</ul>";
+    echo "</ul>\n";
 }
