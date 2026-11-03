@@ -23,7 +23,6 @@ abstract class Action {
             <head>
                 <title>Touiteur</title>
                 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-                <script src="../js/touite.js"></script>
             </head>
             <body>
             <nav class="flex justify-center gap-2 p-4 bg-white shadow">
