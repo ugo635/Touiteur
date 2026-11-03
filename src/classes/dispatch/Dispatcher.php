@@ -3,8 +3,8 @@
 namespace iutnc\touiteur\dispatch;
 
 use iutnc\touiteur\action\DefaultAction;
-use iutnc\touiteur\action\AddTouite;// a faire classe
-use iutnc\touiteur\action\Profile;//a faire classe
+use iutnc\touiteur\action\AddTouite; // a faire classe
+use iutnc\touiteur\action\Profile; //a faire classe
 
 class Dispatcher {
     private ?string $action = null;
