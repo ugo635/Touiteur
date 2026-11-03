@@ -1,4 +1,4 @@
-<?phpgit
+<?php
 
 namespace iutnc\touiteur\bdd;
 
