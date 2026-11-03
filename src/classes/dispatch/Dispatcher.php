@@ -30,5 +30,4 @@ class Dispatcher {
     private function renderPage(string $html) {
         echo $html;
     }
-
 }
