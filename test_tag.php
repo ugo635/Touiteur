@@ -7,10 +7,13 @@ require_once __DIR__ . '/src/classes/touite/Touite.php';
 require_once __DIR__ . '/src/classes/bdd/TouiteurRepository.php';
 require_once __DIR__ . '/src/classes/render/Renderer.php';
 require_once __DIR__ . '/src/classes/render/TouiteRenderer.php';
+require_once __DIR__ . '/src/classes/render/RendererFactory.php';
 
 use iutnc\touiteur\bdd\TouiteurRepository;
+use iutnc\touiteur\render\RendererFactory;
+use iutnc\touiteur\touite\Touite;
+use iutnc\touiteur\users\User;
 
-// 1. Initialisation de la connexion BD
 try {
     TouiteurRepository::setConfig(__DIR__ . '/config/config.db.ini');
     $repo = TouiteurRepository::getInstance();
@@ -18,21 +21,34 @@ try {
     die("Erreur de connexion : " . $e->getMessage() . "\n");
 }
 
-// 2. Tag recherché
 $tagRecherche = 'informatique';
 
-echo "<h1>Touites contenant le tag : #{$tagRecherche}</h1>\n";
+// Optionnel : création et sauvegarde d'un exemple pour s'assurer que la base contient des données
+$auteur = new User("Alice");
+$nouveauTouite = new Touite("Je développe la persistance pour le projet en #informatique et #web !", $auteur);
+$repo->saveTouite($nouveauTouite);
 
-// 3. Recherche
+// Récupération des touites portant le tag
 $listeTouites = $repo->findTouitesByTag($tagRecherche);
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Recherche par Tag</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="p-6 bg-gray-50 flex flex-col items-center">
+<h1 class="text-2xl font-bold mb-4">Touites avec le tag : #<?= htmlspecialchars($tagRecherche) ?></h1>
 
-// 4. Affichage
-if (empty($listeTouites)) {
-    echo "<p>Aucun touite trouvé pour ce tag.</p>\n";
-} else {
-    echo "<ul>\n";
-    foreach ($listeTouites as $touite) {
-        echo "<li>" . htmlspecialchars($touite->message) . "</li>\n";
-    }
-    echo "</ul>\n";
-}
+<div class="space-y-4">
+    <?php if (empty($listeTouites)): ?>
+        <p class="text-gray-500">Aucun touite trouvé pour ce tag.</p>
+    <?php else: ?>
+        <?php foreach ($listeTouites as $touite): ?>
+            <?= RendererFactory::getRenderer($touite)->render() ?>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+</body>
+</html>
