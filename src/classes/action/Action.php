@@ -13,6 +13,30 @@ abstract class Action {
         $this->script_name = $_SERVER['SCRIPT_NAME'];
     }
 
+    public function prefix(): string {
+        $btn = "";
+        $username = $_SESSION["username"] ?? "";
+
+        return <<<HTML
+        <!DOCTYPE html>
+        <html lang="fr">
+            <head>
+                <title>Touiteur</title>
+                <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+            </head>
+            <body>
+            <nav class="flex justify-center gap-2 p-4 bg-white shadow">
+                <a href="?action=default" class="$btn">Home</a>
+                <a href="?action=profile&username=$username" class="$btn">Profil</a>
+                <a href="?action=add-touite" class="$btn">Poster</a>
+            </nav>
+        HTML;
+    }
+
+    public function suffixe(): string {
+        return "</body></html>";
+    }
+
     public function __invoke(): string {
         return $this->execute();
     }

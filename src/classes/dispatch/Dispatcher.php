@@ -15,25 +15,15 @@ class Dispatcher {
 
     public function run(): void {
         $act = match ($this->action) {
-            default => new DefaultAction(),
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
+            default => new DefaultAction(),
 
         };
 
-        $html = <<<HTML
-        <!DOCTYPE html>
-        <html lang="fr">
-            <head>
-                <title>Touiteur</title>
-                <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-            </head>
-            <body>
-        HTML;
-        $this->renderPage($html);
-        $this->renderPage($this->renderNav());
+        $this->renderPage($act->prefix());
         $this->renderPage($act()); // Appel __invoke() de Action
-        $this->renderPage("</body></html>");
+        $this->renderPage($act->suffixe());
 
     }
 
@@ -41,17 +31,4 @@ class Dispatcher {
         echo $html;
     }
 
-    private function renderNav() :string{
-        $btn = "";
-        $username = $_SESSION["username"] ?? "";
-        return <<<HTML
-        <nav class="flex justify-center gap-2 p-4 bg-white shadow">
-            <a href="?action=default" class="$btn">Home</a>
-            <a href="?action=profile&username=$username" class="$btn">Profil</a>
-            <a href="?action=add-touite" class="$btn">Poster</a>
-        </nav>
-           
-        HTML;
-
-    }
 }
