@@ -18,29 +18,48 @@ class Profile extends Action{
         //TODO: remplacer val par defaut
         $nbFollowers = 0;
         $nbFollows = 0;
-        $dateCreation = getDate();
+        $dateCreation = "dd/mm/yyyy";
 
+        //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";
-        $formatTouites=($tab === "touites") ? "border-blue-500 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-blue-500 hover:bg-gray-50";
-        $styleTabLikes = ($tab === 'likes') ? "border-blue-500 text-blue-600 font-bold" : "border-transparent text-gray-500 hover:text-blue-500 hover:bg-gray-50";
+        $formatTouites=($tab === "touites") ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
+        $formatLikes = ($tab === 'likes') ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
 
         return <<<HTML
         <div class="max-w-2xl mx-auto p-4 mt-4 bg-white shadow-sm rounded-lg border border-gray-200"
              
              <!-- pseudo, nb followers, nb follows, date creation -->
-             <div class="flex justify-between items-center mb-4">
+             <div class="flex justify-between mb-4">
                 <h1 class="text-xl font-bold">@$user</h1>
                 <div class="flex items-center space-x-4">
                     <!--Bouton followers-->
-                    <a href="?action=followers&user=$user" class="text-blue-500 hover:underline">
-                    <span class="font-bold text-gray-900 group-hover:text-blue-500">$nbFollowers</span>
-                        <span class="text-gray-500 text-sm">abonnés</span>
-                        
+                    <a href="?action=followers&user=$user" class="text-black-500 hover:underline">
+                    <span class="font-bold">$nbFollowers</span>
+                    <span class="text-gray-500 text-sm">abonnés</span>      
                     </a>
+                    
                     <!--Bouton follows-->
-                    <a href="?action=follows&user=$user" class="text-blue-500 hover:underline">$nbFollows follows</a>
-             <!--TODO: liste des touites de l'utilisateur--> 
+                    <a href="?action=follows&user=$user" class="text-black-500 hover:underline">
+                        <span class="font-bold">$nbFollows</span>
+                        <span class="text-gray-500 text-sm">abonnements</span>      
+                    </a>
+                </div>
+             </div>
              
+             <!--date creation-->
+             <p class="text-gray-500 mb-4">$dateCreation</p>    
+             
+             <!--barre touites/likes-->
+             <div class="flex border-b border-gray-200 w-full">
+                <a href="?action=profile&username=$user&tab=touites" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatTouites">
+                Touites
+                </a>
+                <a href="?action=profile&username=$user&tab=likes" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatLikes">
+                Likes
+                </a>
+             </div>
+             
+             <!--TODO: liste des touites de l'utilisateur / des likes de l'utilisateur--> 
         </div>
         HTML;
     }
