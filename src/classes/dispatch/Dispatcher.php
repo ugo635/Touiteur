@@ -4,7 +4,7 @@ namespace iutnc\touiteur\dispatch;
 
 use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite;// a faire classe
-use iutnc\touiteur\action\ProfileTouite;//a faire classe
+use iutnc\touiteur\action\Profile;//a faire classe
 
 class Dispatcher {
     private ?string $action = null;
@@ -17,7 +17,7 @@ class Dispatcher {
         $act = match ($this->action) {
             default => new DefaultAction(),
             'add-touite'=> new AddTouite(),
-            'profile' => new ProfileTouite(),
+            'profile' => new Profile(),
 
         };
 
@@ -43,10 +43,11 @@ class Dispatcher {
 
     private function renderNav() :string{
         $btn = "";
+        $username = $_SESSION["username"] ?? "";
         return <<<HTML
         <nav class="flex justify-center gap-2 p-4 bg-white shadow">
             <a href="?action=default" class="$btn">Home</a>
-            <a href="?action=profile" class="$btn">Afficher</a>
+            <a href="?action=profile&username=$username" class="$btn">Profil</a>
             <a href="?action=add-touite" class="$btn">Poster</a>
         </nav>
            
