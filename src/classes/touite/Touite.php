@@ -15,11 +15,11 @@ class Touite {
     private int $compteurLike = 0;
     private ?User $user ;
 
-    public function __construct(string $m, User $u = null) {
+    public function __construct(string $m, ?User $u = null) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
         } else {
-            $this->user = $u ?? new User("anonymous");
+            $this->user = $u;
             $this->message = $m;
             $this->date = getDate();
             $this->id = uniqid();

@@ -12,11 +12,19 @@ class TouiteurRepository {
     private static ?TouiteurRepository $instance = null;
     private static array $config = [];
 
-    private function __construct(array $conf)
-    {
+    private function __construct(array $conf) {
         $port = $conf['port'] ?? 1521;
-        $dsn = "{$conf['driver']}:host={$conf['host']};port={$port};dbname={$conf['database']};charset=utf8mb4";
-        $this->pdo = new PDO($dsn, $conf['username'], $conf['password'], [PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_STRINGIFY_FETCHES => false,]);
+        $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})))";
+
+        $this->pdo = new PDO(
+            $dsn,
+            $conf['username'],
+            $conf['password'],
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_PERSISTENT => true
+            ]
+        );
     }
 
     public static function setConfig(string $file): void
