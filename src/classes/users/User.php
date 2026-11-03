@@ -9,6 +9,7 @@ class user {
     private array $followers;
     private array $follows;
     private array $tagfollows;
+    private array $likes;
     private array $creationDate;
 
     public function __construct(String $username) {
@@ -35,6 +36,9 @@ class user {
     }
     public function addTagFollow($tag): void {
         $this->tagfollows[] = $tag;
+    }
+    public function addLike($like): void {
+        $this->likes[] = $like;
     }
 
 }
