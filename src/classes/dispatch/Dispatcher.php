@@ -3,8 +3,9 @@
 namespace iutnc\touiteur\dispatch;
 
 use iutnc\touiteur\action\DefaultAction;
-use iutnc\touiteur\action\AddTouite; // a faire classe
-use iutnc\touiteur\action\Profile; //a faire classe
+use iutnc\touiteur\action\AddTouite;
+use iutnc\touiteur\action\Profile;
+use iutnc\touiteur\action\Hashtag;
 
 class Dispatcher {
     private ?string $action = null;
@@ -17,6 +18,7 @@ class Dispatcher {
         $act = match ($this->action) {
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
+            'voir-tag' => new Hashtag(),
             default => new DefaultAction(),
 
         };

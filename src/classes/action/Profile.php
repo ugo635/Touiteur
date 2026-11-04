@@ -79,6 +79,7 @@ class Profile extends Action{
                 </a>
              </div>
              
+             <!--listes touites-->            
              <div class="flex items-center flex-col gap-2 py-8">
                 $touitesHtml
              </div>
