@@ -22,7 +22,6 @@ class Profile extends Action{
         //TODO: remplacer val par defaut
         $nbFollowers = 0;
         $nbFollows = 0;
-        $dateCreation = "dd/mm/yyyy";
 
         //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";
@@ -65,10 +64,7 @@ class Profile extends Action{
                     </a>
                 </div>
              </div>
-             
-             <!--date creation-->
-             <p class="text-gray-500 mb-4">$dateCreation</p>    
-             
+                          
              <!--barre touites/likes-->
              <div class="flex border-b border-gray-200 w-full">
                 <a href="?action=profile&username=$user&tab=touites" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatTouites">
