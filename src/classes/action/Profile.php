@@ -2,6 +2,8 @@
 
 namespace iutnc\touiteur\action;
 
+use iutnc\touiteur\bdd\TouiteurRepository;
+
 class Profile extends Action{
     public function get(): string {
         $user = $_GET['username'] ?? null;
@@ -18,7 +20,8 @@ class Profile extends Action{
         //TODO: remplacer val par defaut
         $nbFollowers = 0;
         $nbFollows = 0;
-        $dateCreation = "dd/mm/yyyy";
+
+        $dateCreation = unserialize($_SESSION['user'])->creationDate;
 
         //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";

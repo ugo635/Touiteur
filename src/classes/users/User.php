@@ -10,14 +10,14 @@ class User {
     private array $follows;
     private array $tagfollows;
     private array $likes;
-    private array $creationDate;
+    private string $creationDate;
 
-    public function __construct(String $username) {
+    public function __construct(string $username, string $date) {
         $this->username = $username;
+        $this->creationDate = $date;
         $this->touites = [];
         $this->followers = [];
         $this->follows = [];
-        $this->creationDate = getDate();
     }
 
     public function __get(string $at): mixed {
