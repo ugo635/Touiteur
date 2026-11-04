@@ -131,20 +131,4 @@ class TouiteurRepository {
         return $touites;
     }
 
-    public function findTouitesByUsername(string $username): array{
-        $query = "SELECT t.id_touite, t.message, t.date_touite, t.nb_like, t.username FROM touite t
-                  INNER JOIN utilisateur u ON t.username = u.username
-                  WHERE u.username = :username
-                  ORDER BY t.date_touite DESC";
-
-        $requete=$this->pdo->prepare($query);
-        $requete->execute(['username'=>$username]);
-        $touites = [];
-        while ($ligne = $requete->fetch(PDO::FETCH_ASSOC)){
-            $user = new User($ligne['USERNAME']);
-            $touites[] =new Touite($ligne['MESSAGE'],$user);
-        }
-        return $touites;
-    }
-
 }

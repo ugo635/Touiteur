@@ -31,7 +31,7 @@ class Profile extends Action{
 
         //recuperation touites de l'utilisateur
         try{
-            $touites= TouiteurRepository::getInstance()->findTouitesByUsername($user);
+            $touites= TouiteurRepository::getInstance()->findTouitesByUser($user);
         } catch (\Exception $e) {
            //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
         }
