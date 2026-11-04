@@ -28,11 +28,12 @@ class Login extends Action {
         $password = $_POST["password"] ?? "";
 
         if ($user === "" || $password === "") {
-            return $this->get() . "<p>Veuillez remplir tous les champs.</p>";
+            return $this->get() . "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Veuillez remplir tous les champs.</p></div>";
         }
 
-        // Vérifier les identifiants en base de données
 
-        return "Connexion réussie !";
+        // TODO: Check si connecté avec la BD
+        header("Location: ?action=default");
+        exit;
     }
 }
