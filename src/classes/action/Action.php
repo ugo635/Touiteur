@@ -15,7 +15,9 @@ abstract class Action {
 
     public function prefix(): string {
         $btn = "";
-        $username = $_SESSION["username"] ?? "";
+        $username = isset($_SESSION["user"])
+            ? (unserialize($_SESSION["user"])->username ?? "")
+            : "";
 
         return <<<HTML
         <!DOCTYPE html>
