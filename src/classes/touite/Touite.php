@@ -13,9 +13,9 @@ class Touite {
     private string $id;
     private array $like= [];
     private int $compteurLike = 0;
-    private User $user;
+    private ?User $user ;
 
-    public function __construct(string $m, User $u) {
+    public function __construct(string $m, ?User $u = null) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
         } else {
@@ -59,9 +59,11 @@ class Touite {
             }
         } else {
             if ($isLike) {
-                $this->like[$userId] = 1;                $this->compteurLike++;
+                $this->like[$userId] = 1;
+                $this->compteurLike++;
             } else {
-                $this->like[$userId] = -1;                $this->compteurLike--;
+                $this->like[$userId] = -1;
+                $this->compteurLike--;
             }
         }
     }
