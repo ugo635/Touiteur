@@ -74,4 +74,11 @@ class TouiteurRepository
 
         return $touites;
     }
+
+    public function addtouite(Touite $touite, string $username): void {
+
+        $sql = "INSERT INTO touite (username, message) VALUES (:username, :message)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':username' => $username, ':message' => $touite->getMessage()]);
+    }
 }
