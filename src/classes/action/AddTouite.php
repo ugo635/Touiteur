@@ -32,9 +32,6 @@ class AddTouite extends Action {
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
         }
-        //config
-        TouiteurRepository::setConfig(__DIR__.'/../../../config/config.db.ini');
-
         //cree un nouveau touite et sauvegarde
         TouiteurRepository::getInstance()->saveTouite($touite);
 
