@@ -2,6 +2,10 @@
 
 namespace iutnc\touiteur\action;
 
+use iutnc\touiteur\bdd\TouiteurRepository;
+use iutnc\touiteur\render\RendererFactory;
+
+
 class Profile extends Action{
     public function get(): string {
         $user = $_GET['username'] ?? null;
@@ -9,7 +13,7 @@ class Profile extends Action{
         if ($user === null|| $user === "") {
             return <<<HTML
         <div class="p-8 text-center">
-            <h1 class="text-2xl font-bold mb-6">Vous n'etes pas connecté</h1>
+            <h1 class="text-2xl font-bold mb-6">Compte non existant</h1>
         </div>
         HTML;
         }
@@ -25,6 +29,22 @@ class Profile extends Action{
         $formatTouites=($tab === "touites") ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
         $formatLikes = ($tab === 'likes') ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
 
+        //recuperation touites de l'utilisateur
+        try{
+            $touites= TouiteurRepository::getInstance()->findTouitesByUsername($user);
+        } catch (\Exception $e) {
+           //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
+        }
+
+        //si vide on dis qu'il n'y en a pas
+        $touitesHtml = '';
+        if (empty($touites)) {
+            $touitesHtml = '<p class="text-gray-500 text-center py-8">Aucun touite pour cet utilisateur.</p>';
+        } else { //sinon on affiche les touites avec le renderer
+            foreach ($touites as $touite) {
+                $touitesHtml .= RendererFactory::getRenderer($touite)->render();
+            }
+        }
         return <<<HTML
         <div class="max-w-2xl mx-auto p-4 mt-4 bg-white shadow-sm rounded-lg border border-gray-200"
              
@@ -59,7 +79,9 @@ class Profile extends Action{
                 </a>
              </div>
              
-             <!--TODO: liste des touites de l'utilisateur / des likes de l'utilisateur--> 
+             <div class="flex items-center flex-col gap-2 py-8">
+                $touitesHtml
+             </div>
         </div>
         HTML;
     }
