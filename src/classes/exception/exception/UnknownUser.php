@@ -2,6 +2,4 @@
 
 namespace iutnc\touiteur\exception\exception;
 
-class UnknownUser {
-
-}
+class UnknownUser extends \Exception {}

@@ -1,7 +1,5 @@
 <?php
 
-namespace iutnc\touiteur\exception;
+namespace iutnc\touiteur\exception\exception;
 
-class InvalidPassword {
-
-}
+class InvalidPassword extends \Exception {}

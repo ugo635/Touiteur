@@ -2,8 +2,8 @@
 
 namespace iutnc\touiteur\touite;
 
-use iutnc\touiteur\exception\InvalidPropertyNameException;
-use iutnc\touiteur\exception\MessageTooBig;
+use iutnc\touiteur\exception\exception\InvalidPropertyNameException;
+use iutnc\touiteur\exception\exception\MessageTooBig;
 use iutnc\touiteur\users\User;
 
 

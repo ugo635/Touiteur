@@ -9,7 +9,7 @@ class Profile extends Action{
         if ($user === null|| $user === "") {
             return <<<HTML
         <div class="p-8 text-center">
-            <h1 class="text-2xl font-bold mb-6">Vous n'etes pas connecté</h1>
+            <h1 class="text-2xl font-bold mb-6 underline text-blue-600"><a href="?action=login">Vous n'etes pas connecter, veuillez vous connectez ici</a></h1>
         </div>
         HTML;
         }

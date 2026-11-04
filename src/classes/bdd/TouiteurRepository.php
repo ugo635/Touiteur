@@ -2,10 +2,14 @@
 
 namespace iutnc\touiteur\bdd;
 
-use PDO;
 use Exception;
+use iutnc\touiteur\exception\exception\InvalidPassword;
+use iutnc\touiteur\exception\exception\UnableToCreateUser;
+use iutnc\touiteur\exception\exception\UnknownUser;
 use iutnc\touiteur\touite\Touite;
 use iutnc\touiteur\users\User;
+use PDO;
+use PDOException;
 
 class TouiteurRepository {
     private PDO $pdo;
@@ -27,8 +31,7 @@ class TouiteurRepository {
         );
     }
 
-    public static function setConfig(string $file): void
-    {
+    public static function setConfig(string $file): void {
         $conf = parse_ini_file($file);
 
         if ($conf === false) {
@@ -129,5 +132,55 @@ class TouiteurRepository {
         }
 
         return $touites;
+    }
+
+    public function checkUser(string $username, string $password): User {
+        // Si user & mdp valide, on renvoie user
+        $query = "SELECT username FROM utilisateur WHERE username = :username AND mdp = :password";
+        $stmt = $this->pdo->prepare($query);
+
+        $stmt->execute([
+            'username' => $username,
+            'password' => $password
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return new User($row['USERNAME']);
+        }
+
+        // Si mdp est invalide, on throw InvalidPassword
+        $query = "SELECT username FROM utilisateur WHERE username = :username";
+        $stmt = $this->pdo->prepare($query);
+
+        $stmt->execute([
+            "username" => $username
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            throw new InvalidPassword("MDP pas valide");
+        }
+
+        // Si l'utilisateur n'existe pas, on throw UnknownUser
+        throw new UnknownUser("User inconnu");
+    }
+
+    public function createUser(string $user, string $password): User {
+        $query = "INSERT INTO utilisateur VALUES (:username, :password, 0, 0)";
+        $stmt = $this->pdo->prepare($query);
+
+        try {
+            $stmt->execute([
+                "username" => $user,
+                "password" => $password
+            ]);
+        } catch (PDOException $e) {
+            throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
+        }
+
+        return new User($user);
     }
 }

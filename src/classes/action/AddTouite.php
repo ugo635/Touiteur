@@ -2,7 +2,7 @@
 namespace iutnc\touiteur\action;
 
 use iutnc\touiteur\bdd\TouiteurRepository;
-use iutnc\touiteur\exception\MessageTooBig;
+use iutnc\touiteur\exception\exception\MessageTooBig;
 use iutnc\touiteur\render\RendererFactory;
 use iutnc\touiteur\touite\Touite;
 

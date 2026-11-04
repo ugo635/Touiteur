@@ -2,6 +2,4 @@
 
 namespace iutnc\touiteur\exception\exception;
 
-class UnableToCreateUser {
-
-}
+class UnableToCreateUser extends \Exception {}

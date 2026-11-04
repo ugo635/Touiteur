@@ -2,6 +2,11 @@
 
 namespace iutnc\touiteur\action;
 
+use iutnc\touiteur\bdd\TouiteurRepository;
+use iutnc\touiteur\exception\exception\InvalidPassword;
+use iutnc\touiteur\exception\exception\UnableToCreateUser;
+use iutnc\touiteur\exception\exception\UnknownUser;
+
 class Login extends Action {
 
     public function get(): string {
@@ -16,8 +21,12 @@ class Login extends Action {
                     <input type="password" name="password" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
                 </fieldset>
                 
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 border border-blue-600 
-                hover:border-blue-700 rounded-4xl p-3 outline-none cursor-pointer">Se connecter</button>
+                <div>
+                    <button type="submit" name="submit" value="login" class="bg-blue-500 hover:bg-blue-600 border border-blue-600 
+                    hover:border-blue-700 rounded-4xl p-3 outline-none cursor-pointer">Se connecter</button>
+                    <button type="submit" name="submit" value="register" class="bg-blue-500 hover:bg-blue-600 border border-blue-600 
+                    hover:border-blue-700 rounded-4xl p-3 outline-none cursor-pointer">S'inscrire</button>
+                </div>
             </form>
         HTML;
 
@@ -26,14 +35,33 @@ class Login extends Action {
     public function post(): string {
         $user = $_POST["user"] ?? "";
         $password = $_POST["password"] ?? "";
+        $type = $_POST["submit"] ?? "";
 
         if ($user === "" || $password === "") {
             return $this->get() . "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Veuillez remplir tous les champs.</p></div>";
         }
 
+        if ($type == "login") {
+            try {
+                $user = TouiteurRepository::getInstance()->checkUser($user, $password);
+                $_SESSION["user"] = serialize($user);
+                return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Vous etes connecter!</p></div>";
+            } catch (InvalidPassword $e) {
+                return $this->get() .
+                    "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Mot de passe invalide, reassayer</p></div>";
+            } catch (UnknownUser $e) {
+                return $this->get() . "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Utilisateur inconnu</p></div>";
+            }
+        } else if ($type == "register") {
+            try {
+                $user = TouiteurRepository::getInstance()->createUser($user, $password);
+                return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Utilisateur créer avec succès</p></div>";
+            } catch (UnableToCreateUser $e) {
+                return $this->get() . "<br><div class='flex justify-center'>
+                    <p class='text-red-500 font-medium'>L'utilisateur existe déjà, essayer de vous connecter</p></div>";
+            }
+        }
 
-        // TODO: Check si connecté avec la BD
-        header("Location: ?action=default");
-        exit;
+        return "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Erreur Serveur</p></div>";
     }
 }

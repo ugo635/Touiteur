@@ -1,7 +1,7 @@
 <?php
 namespace iutnc\touiteur\users;
 
-use iutnc\touiteur\exception\InvalidPropertyNameException;
+use iutnc\touiteur\exception\exception\InvalidPropertyNameException;
 
 class User {
     private String $username;
