@@ -53,7 +53,7 @@ class TouiteurRepository {
         return self::$instance;
     }
 
-    public function saveTouite(Touite $t): Touite {
+    public function saveTouite(Touite $touite): Touite {
         $this->pdo->beginTransaction();
 
         try {
@@ -62,7 +62,7 @@ class TouiteurRepository {
             );
 
             $stmtUser->execute([
-                'username' => $t->user->username
+                'username' => $touite->user->username
             ]);
 
             if (!$stmtUser->fetch()) {
@@ -71,23 +71,24 @@ class TouiteurRepository {
                 );
 
                 $stmtInsertUser->execute([
-                    'username' => $t->user->username
+                    'username' => $touite->user->username
                 ]);
             }
 
             $stmtTouite = $this->pdo->prepare(
-                "INSERT INTO touite (username, message, nb_like) VALUES (:username, :message, :nb_like)"
+                "INSERT INTO touite (id_touite, username, message, nb_like) VALUES (:id_touite, :username, :message, :nb_like)"
             );
 
             $stmtTouite->execute([
-                'username' => $t->user->username,
-                'message' => $t->message,
-                'nb_like' => $t->compteurLike
+                'id_touite' => $touite->id,
+                'username' => $touite->user->username,
+                'message' => $touite->message,
+                'nb_like' => $touite->compteurLike
             ]);
 
             $this->pdo->commit();
 
-            return $t;
+            return $touite;
         } catch (Exception $e) {
             $this->pdo->rollBack();
             throw $e;
@@ -182,5 +183,49 @@ class TouiteurRepository {
         }
 
         return new User($user);
+    }
+
+    public function like(string $touite, string $user, int $change): string {
+        $query = "SELECT username, id_touite, vote FROM likes WHERE username = :username AND id_touite = :id_touite";
+        $stmt = $this->pdo->prepare($query);
+
+        $stmt->execute([
+            "id_touite" => $touite,
+            "username" => $user
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // S'il y a deja qqc
+        if ($row) {
+            if ($row["VOTE"] == $change) { // Si c'est le meme, on retire le like/delike
+                $query = "DELETE FROM likes WHERE username = :username AND id_touite = :id_touite";
+                $stmt = $this->pdo->prepare($query);
+                $stmt->execute([
+                    "username" => $user,
+                    "id_touite" => $touite
+                ]);
+                return "Removed";
+            } else { // On remplace
+                $query = "UPDATE likes SET vote = :vote WHERE username = :username AND id_touite = :id_touite";
+                $stmt = $this->pdo->prepare($query);
+                $stmt->execute([
+                    "username" => $user,
+                    "id_touite" => $touite,
+                    "vote" => $change
+                ]);
+                return "Replaced";
+            }
+        } else { // Si ya pas de like, on ajoute le like
+            $query = "INSERT INTO likes (username, id_touite, vote) VALUES (:username, :id_touite, :vote)";
+            $stmt = $this->pdo->prepare($query);
+
+            $stmt->execute([
+                "id_touite" => $touite,
+                "username" => $user,
+                "vote" => $change,
+            ]);
+            return "Added";
+        }
     }
 }

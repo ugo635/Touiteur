@@ -33,26 +33,26 @@ class TouiteRenderer implements Renderer {
             </div>
         HTML;
 
-        $boutons = ($selector == 2) ? <<<HTML
-            <div class="flex flex-row items-center">
-                <div class="score flex flex-row items-center">
-                    <div class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', 1)">
+        $boutons = <<<HTML
+            <div class="flex flex-row items-center score hidden">
+                <div class="flex flex-row items-center">
+                    <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', 1)">
                         <svg class="w-full h-full" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                             <path class="hover:fill-purple-500" fill="#FF00FF60" d="M34,9c-4.2,0-7.9,2.1-10,5.4C21.9,11.1,18.2,9,14,9C7.4,9,2,14.4,2,21c0,11.9,22,24,22,24s22-12,22-24 C46,14.4,40.6,9,34,9z"/>
-                        </svg viewBox="0 0 48 48">
-                    </div>
-                    {$score}
-                    <div class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', -1)">
-                        <svg class="w-full h-full" viewBox="180 90 320 310" xmlns="http://www.w3.org/2000/svg">
-                          <g class="group-hover:fill-purple-500" fill="#E24B4A60" stroke="#A32D2D60" stroke-width="3" stroke-linejoin="round">
-                            <path transform="rotate(-8 340 380)" d="M340 175C340 140 310 110 270 110C225 110 200 145 200 190C200 270 290 330 340 380L332 350L352 320L322 285L350 245L320 215Z"/>
-                            <path transform="rotate(8 340 380)" d="M340 175L320 215L350 245L322 285L352 320L332 350L340 380C390 330 480 270 480 190C480 145 455 110 410 110C370 110 340 140 340 175Z"/>
-                          </g>
                         </svg>
-                    </div>
+                    </button>
+                    <span class="score-value">{$score}</span>
+                    <button class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', -1)">
+                        <svg class="w-full h-full" viewBox="180 90 320 310" xmlns="http://www.w3.org/2000/svg">
+                            <g class="group-hover:fill-purple-500" fill="#E24B4A60" stroke="#A32D2D60" stroke-width="3" stroke-linejoin="round">
+                                <path transform="rotate(-8 340 380)" d="M340 175C340 140 310 110 270 110C225 110 200 145 200 190C200 270 290 330 340 380L332 350L352 320L322 285L350 245L320 215Z"/>
+                                <path transform="rotate(8 340 380)" d="M340 175L320 215L350 245L322 285L352 320L332 350L340 380C390 330 480 270 480 190C480 145 455 110 410 110C370 110 340 140 340 175Z"/>
+                            </g>
+                        </svg>
+                    </button>
                 </div>
             </div>
-        HTML : "";
+        HTML;
 
 
         // Le div sous article est la photo de profile (vide pr le moment)
@@ -75,21 +75,54 @@ class TouiteRenderer implements Renderer {
                 function afficherPlus(post) {
                     let message = document.querySelector("#" + post + " .msg-content")
                     message.classList.remove("line-clamp-2")
-                
+            
                     let btn = document.querySelector("#" + post + " .afficher-plus")
                     btn.remove()
+            
+                    let score = document.querySelector("#" + post + " .score")
+                    score.classList.remove("hidden")
                 }
-                
+            
                 async function like(post, user, change = 1) {
-                    // TODO: Faire l'action pr like
-                    /*
-                    const res = await fetch("?action=like&post={\$post}", {
+                    const res = await fetch("?action=like", {
                         method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
                         body: JSON.stringify({
-                            user: user
+                            post: post.replace("post-", ""),
+                            user: user,
+                            change: change
                         })
                     });
-                     */
+            
+                    if (!res.ok) {
+                        console.error("Erreur lors du vote");
+                        return;
+                    }
+            
+                    const result = (await res.text()).trim();
+            
+                    const article = document.querySelector("#post-" + post);
+                    const likeBtn = article.querySelector(".like");
+                    const dislikeBtn = article.querySelector(".dislike");
+                    const score = article.querySelector(".score-value");
+            
+                    const activeBtn = change === 1 ? likeBtn : dislikeBtn;
+                    const inactiveBtn = change === 1 ? dislikeBtn : likeBtn;
+            
+                    // On change la couleur des boutons et update le score
+                    if (result === "Added") {
+                        activeBtn.querySelector(change === 1 ? "path" : "g").classList.add("fill-purple-500");
+                        score.textContent = parseInt(score.textContent) + change;
+                    } else if (result === "Removed") {
+                        activeBtn.querySelector(change === 1 ? "path" : "g").classList.remove("fill-purple-500");
+                        score.textContent = parseInt(score.textContent) - change;
+                    } else if (result === "Replaced") {
+                        inactiveBtn.querySelector(change === 1 ? "g" : "path").classList.remove("fill-purple-500");
+                        activeBtn.querySelector(change === 1 ? "path" : "g").classList.add("fill-purple-500");
+                        score.textContent = parseInt(score.textContent) + change * 2;
+                    }
                 }
             </script>
         HTML;

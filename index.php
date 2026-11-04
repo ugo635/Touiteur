@@ -11,7 +11,5 @@ use iutnc\touiteur\bdd\TouiteurRepository;
 session_start();
 TouiteurRepository::setConfig(__DIR__ . '/config/config.db.ini');
 
-
-
 $dispatcher = new Dispatcher();
 $dispatcher->run();
