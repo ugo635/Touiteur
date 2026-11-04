@@ -73,10 +73,10 @@ class TouiteRenderer implements Renderer {
             </article>
             <script>
                 function afficherPlus(post) {
-                    let message = document.querySelector("#{\$post} .msg-content")
+                    let message = document.querySelector("#" + post + " .msg-content")
                     message.classList.remove("line-clamp-2")
                 
-                    let btn = document.querySelector("#{\$post} .afficher-plus")
+                    let btn = document.querySelector("#" + post + " .afficher-plus")
                     btn.remove()
                 }
                 
