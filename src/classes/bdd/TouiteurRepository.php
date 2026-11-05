@@ -137,7 +137,7 @@ class TouiteurRepository {
 
     public function checkUser(string $username, string $password): User {
         // Si user & mdp valide, on renvoie user
-        $query = "SELECT username FROM utilisateur WHERE username = :username AND mdp = :password";
+        $query = "SELECT username, date_creation FROM utilisateur WHERE username = :username AND mdp = :password";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
@@ -148,7 +148,8 @@ class TouiteurRepository {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
-            return new User($row['USERNAME']);
+            $date = $row['date_creation'];
+            return new User($row['USERNAME'], $date);
         }
 
         // Si mdp est invalide, on throw InvalidPassword
@@ -170,7 +171,7 @@ class TouiteurRepository {
     }
 
     public function createUser(string $user, string $password): User {
-        $query = "INSERT INTO utilisateur VALUES (:username, :password, 0, 0)";
+        $query = "INSERT INTO utilisateur (username, mdp) VALUES (:username, :password)";
         $stmt = $this->pdo->prepare($query);
 
         try {
@@ -183,6 +184,16 @@ class TouiteurRepository {
         }
 
         return new User($user);
+    }
+
+    public function getUserProfile(string $username): ?array {
+        $query = "SELECT username, nb_follower, nb_follows, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation 
+              FROM utilisateur 
+              WHERE username = :username";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['username' => $username]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
     public function like(string $touite, string $user, int $change): string {
