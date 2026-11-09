@@ -18,6 +18,7 @@ class User {
         $this->touites = [];
         $this->followers = [];
         $this->follows = [];
+
     }
 
     public function __get(string $at): mixed {
