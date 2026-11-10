@@ -17,7 +17,6 @@ class Profile extends Action{
         }
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
 
-        //TODO: remplacer val par defaut
         $nbFollowers = 0;
         $nbFollows = 0;
 
