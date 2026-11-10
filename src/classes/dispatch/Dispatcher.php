@@ -7,6 +7,7 @@ use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite;
 use iutnc\touiteur\action\Login;
 use iutnc\touiteur\action\Profile;
+use iutnc\touiteur\action\api\FollowList;
 
 class Dispatcher {
     private ?string $action = null;
@@ -21,6 +22,8 @@ class Dispatcher {
             'login' => new Login(),
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
+            'followers' => new FollowList('followers'),
+            'follows' => new FollowList('follows'),
             default => new DefaultAction(),
         };
 

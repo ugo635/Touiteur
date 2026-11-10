@@ -17,8 +17,9 @@ class Profile extends Action{
         }
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
 
-        $nbFollowers = 0;
-        $nbFollows = 0;
+        $repo = TouiteurRepository::getInstance();
+        $nbFollowers = $repo->countFollowers($_GET['username']);
+        $nbFollows = $repo->countFollows($_GET['username']);
 
         $dateCreation = unserialize($_SESSION['user'])->creationDate;
 

@@ -148,7 +148,7 @@ class TouiteurRepository {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
-            $date = $row['date_creation'];
+            $date = $row['DATE_CREATION'];
             return new User($row['USERNAME'], $date);
         }
 
@@ -238,5 +238,84 @@ class TouiteurRepository {
             ]);
             return "Added";
         }
+    }
+
+
+    public function userExists(string $username): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM utilisateur WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+    }
+
+    public function getCreationDate(string $username): ?string {
+        $stmt = $this->pdo->prepare(
+            "SELECT TO_CHAR(date_creation, 'DD/MM/YY') AS DATE_CREATION FROM utilisateur WHERE username = :username"
+        );
+        $stmt->execute(['username' => $username]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['DATE_CREATION'] : null;
+    }
+
+    public function isFollowing(string $abonne, string $suivi): bool {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
+        );
+        $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+    }
+
+    public function follow(string $abonne, string $suivi): bool {
+        if ($abonne === $suivi || !$this->userExists($suivi) || $this->isFollowing($abonne, $suivi)) {
+            return false;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare(
+                "INSERT INTO abonnement_utilisateur (abonne, suivi) VALUES (:abonne, :suivi)"
+            );
+            $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+            return true;
+        } catch (PDOException $e) {
+            // Refus par un trigger (ex : même email)
+            return false;
+        }
+    }
+
+    public function unfollow(string $abonne, string $suivi): bool {
+        $stmt = $this->pdo->prepare(
+            "DELETE FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
+        );
+        $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function countFollowers(string $username): int {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE suivi = :username");
+        $stmt->execute(['username' => $username]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+    }
+
+    public function countFollows(string $username): int {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :username");
+        $stmt->execute(['username' => $username]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+    }
+
+    // renvoie les user qui suivent un user
+    public function findFollowers(string $username): array {
+        $stmt = $this->pdo->prepare(
+            "SELECT abonne FROM abonnement_utilisateur WHERE suivi = :username ORDER BY abonne"
+        );
+        $stmt->execute(['username' => $username]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    // renvoie les user qui sont suivis par un user
+    public function findFollows(string $username): array {
+        $stmt = $this->pdo->prepare(
+            "SELECT suivi FROM abonnement_utilisateur WHERE abonne = :username ORDER BY suivi"
+        );
+        $stmt->execute(['username' => $username]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }
