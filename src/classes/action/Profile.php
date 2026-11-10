@@ -52,6 +52,12 @@ class Profile extends Action{
              <!--date creation-->
              <p class="text-gray-500 mb-4">$dateCreation</p>    
              
+             <div>
+                <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="">
+                    Suivre +
+                </button>
+             </div>
+             
              <!--barre touites/likes-->
              <div class="flex border-b border-gray-200 w-full">
                 <a href="?action=profile&username=$user&tab=touites" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatTouites">
