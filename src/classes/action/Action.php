@@ -19,7 +19,7 @@ abstract class Action {
             ? (unserialize($_SESSION["user"])->username ?? "")
             : "";
 
-        return <<<HTML
+        $html = <<<HTML
         <!DOCTYPE html>
         <html lang="fr">
             <head>
@@ -31,8 +31,11 @@ abstract class Action {
                 <a href="?action=default" class="$btn">Home</a>
                 <a href="?action=profile&username=$username" class="$btn">Profil</a>
                 <a href="?action=add-touite" class="$btn">Poster</a>
-            </nav>
         HTML;
+
+        if (!isset($_SESSION["user"])) $html .= "<a href='?action=login' class='$btn'>Login</a>";
+        $html .= "</nav>";
+        return $html;
     }
 
     public function suffixe(): string {

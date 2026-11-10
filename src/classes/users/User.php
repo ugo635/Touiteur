@@ -4,17 +4,13 @@ namespace iutnc\touiteur\users;
 use iutnc\touiteur\exception\exception\InvalidPropertyNameException;
 
 class User {
-    private String $username;
     private array $touites;
     private array $followers;
     private array $follows;
     private array $tagfollows;
     private array $likes;
-    private string $creationDate;
 
-    public function __construct(string $username, string $date) {
-        $this->username = $username;
-        $this->creationDate = $date;
+    public function __construct(private string $nom, private string $prenom, private string $creationDate) {
         $this->touites = [];
         $this->followers = [];
         $this->follows = [];
@@ -23,6 +19,7 @@ class User {
 
     public function __get(string $at): mixed {
         if (property_exists ($this, $at)) return $this->$at;
+        else if ($at == "username") return "$this->nom $this->prenom";
         throw new InvalidPropertyNameException("$at: invalid property");
     }
     
