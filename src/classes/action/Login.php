@@ -13,8 +13,16 @@ class Login extends Action {
         return <<<HTML
             <form method="POST" id="login" class="flex flex-col items-center gap-4" action="?action=login">
                 <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
-                    <legend class="px-2 font-medium">Username</legend>
-                    <input type="text" name="user" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
+                    <legend class="px-2 font-medium">Email</legend>
+                    <input type="email" name="email" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
+                </fieldset>
+                <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
+                    <legend class="px-2 font-medium">Nom</legend>
+                    <input type="text" name="nom" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
+                </fieldset>
+                <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
+                    <legend class="px-2 font-medium">Prenom</legend>
+                    <input type="text" name="prenom" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
                 </fieldset>
                 <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
                     <legend class="px-2 font-medium">Password</legend>
@@ -33,17 +41,19 @@ class Login extends Action {
     }
 
     public function post(): string {
-        $user = $_POST["user"] ?? "";
+        $nom = $_POST["nom"] ?? "";
+        $prenom = $_POST["prenom"] ?? "";
         $password = $_POST["password"] ?? "";
+        $email = $_POST["email"] ?? "";
         $type = $_POST["submit"] ?? "";
 
-        if ($user === "" || $password === "") {
+        if ($nom === "" || $prenom === "" || $password === "" || $email === "") {
             return $this->get() . "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Veuillez remplir tous les champs.</p></div>";
         }
 
         if ($type == "login") {
             try {
-                $user = TouiteurRepository::getInstance()->checkUser($user, $password);
+                $user = TouiteurRepository::getInstance()->checkUser($email, $nom, $prenom, $password);
                 $_SESSION["user"] = serialize($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Vous etes connecter!</p></div>";
             } catch (InvalidPassword $e) {
@@ -54,7 +64,8 @@ class Login extends Action {
             }
         } else if ($type == "register") {
             try {
-                $user = TouiteurRepository::getInstance()->createUser($user, $password);
+                $user = TouiteurRepository::getInstance()->createUser($email, $nom, $prenom, $password);
+                $_SESSION["user"] = serialize($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Utilisateur créer avec succès</p></div>";
             } catch (UnableToCreateUser $e) {
                 return $this->get() . "<br><div class='flex justify-center'>
