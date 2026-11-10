@@ -118,7 +118,7 @@ class TouiteurRepository {
 
     public function findAllTouites(): array {
         $query = "
-            SELECT id_touite, message, date_touite, nb_like, username
+            SELECT touite.*
             FROM touite
             ORDER BY date_touite DESC
         ";
@@ -239,4 +239,28 @@ class TouiteurRepository {
             return "Added";
         }
     }
+
+    public function findTouitesByTag(string $tag): array {
+        $query = "
+            SELECT touite.*
+            FROM touite
+            JOIN touite_tag t ON t.id_touite = touite.id_touite
+            WHERE t.nom_tag = :tag
+            ORDER BY date_touite DESC
+        ";
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['tag' => $tag]);
+
+        $touites = [];
+
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $user = new User($row['USERNAME']);
+            $touites[] = new Touite($row['MESSAGE'], $user);
+        }
+
+        return $touites;
+    }
+
+
 }

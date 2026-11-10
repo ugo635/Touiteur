@@ -5,7 +5,7 @@ use iutnc\touiteur\bdd\TouiteurRepository;
 use iutnc\touiteur\exception\exception\MessageTooBig;
 use iutnc\touiteur\render\RendererFactory;
 use iutnc\touiteur\touite\Touite;
-
+use iutnc\touiteur\users\User;
 //faire la sauvegarde bdd quand elle sera cree
 
 class AddTouite extends Action {
@@ -27,12 +27,12 @@ class AddTouite extends Action {
             return $this->error("Le message ne peut pas être vide.") . $this->form();
         }
         try {
-            $touite = new Touite($message ); // TODO :Il faudra param pour recup le user quand on aura le login
+            $user = new User('username');
+            $touite = new Touite($message,$user);
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
         }
-
-        //cree un nouveau touite
+        //cree un nouveau touite et sauvegarde
         TouiteurRepository::getInstance()->saveTouite($touite);
 
         return "<p class='p-2 text-green-600'>Touite publié !</p>"

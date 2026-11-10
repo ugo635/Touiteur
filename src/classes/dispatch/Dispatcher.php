@@ -7,6 +7,7 @@ use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite;
 use iutnc\touiteur\action\Login;
 use iutnc\touiteur\action\Profile;
+use iutnc\touiteur\action\Hashtag;
 
 class Dispatcher {
     private ?string $action = null;
@@ -21,6 +22,7 @@ class Dispatcher {
             'login' => new Login(),
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
+            'voir-tag' => new Hashtag(),
             default => new DefaultAction(),
         };
 
