@@ -10,7 +10,9 @@ CREATE TABLE utilisateur (
     nom VARCHAR2(100) NOT NULL,
     prenom VARCHAR2(100) NOT NULL,
     email VARCHAR2(255) NOT NULL,
+    mdp VARCHAR2(255) NOT NULL,
     nb_touites NUMBER(10) DEFAULT 0 NOT NULL,
+    date_creation DATE NOT NULL,
 
     CONSTRAINT pk_utilisateur PRIMARY KEY (username),
     CONSTRAINT uq_utilisateur_email UNIQUE (email),
