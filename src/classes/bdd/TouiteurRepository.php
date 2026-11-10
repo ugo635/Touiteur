@@ -70,14 +70,12 @@ class TouiteurRepository {
             }
 
             $stmtTouite = $this->pdo->prepare(
-                "INSERT INTO touite (id_touite, username, message, nb_like) VALUES (:id_touite, :username, :message, :nb_like)"
+                "INSERT INTO touite (username, message) VALUES (:username, :message)"
             );
 
             $stmtTouite->execute([
-                'id_touite' => $touite->id,
                 'username' => $touite->user->username,
-                'message' => $touite->message,
-                'nb_like' => $touite->compteurLike
+                'message' => $touite->message
             ]);
 
             $this->pdo->commit();
@@ -87,6 +85,18 @@ class TouiteurRepository {
             $this->pdo->rollBack();
             throw $e;
         }
+    }
+
+    public function findUserByUsername(string $username): ?User {
+        $query = "SELECT username, nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
+              FROM utilisateur WHERE username = :username";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['username' => $username]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row
+            ? new User($row["USERNAME"], $row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
+            : null;
     }
 
     public function findTouitesByUser(string $username): array {
@@ -130,7 +140,7 @@ class TouiteurRepository {
     }
 
     public function checkUser(string $email, string $password): User {
-        $query = "SELECT nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation FROM utilisateur WHERE email = :email AND mdp = :password";
+        $query = "SELECT username, nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation FROM utilisateur WHERE email = :email AND mdp = :password";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
@@ -141,7 +151,7 @@ class TouiteurRepository {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
-            return new User($row["NOM"], $row["PRENOM"], $row["DATE_CREATION"]);
+            return new User($row["USERNAME"],$row["NOM"], $row["PRENOM"], $row["DATE_CREATION"]);
         }
 
         $query = "SELECT email FROM utilisateur WHERE email = :email";
@@ -177,7 +187,7 @@ class TouiteurRepository {
             throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
         }
 
-        return new User($nom, $prenom, $creationDate);
+        return new User($username,$nom, $prenom, $creationDate);
     }
 
     public function getUserProfile(string $username): ?array {

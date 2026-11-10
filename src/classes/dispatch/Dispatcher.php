@@ -1,7 +1,7 @@
 <?php
 
 namespace iutnc\touiteur\dispatch;
-
+use iutnc\touiteur\action\Logout;
 use iutnc\touiteur\action\api\Like;
 use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite;
@@ -22,6 +22,7 @@ class Dispatcher {
             'login' => new Login(),
             'add-touite'=> new AddTouite(),
             'profile' => new Profile(),
+            'logout' => new Logout(),
             'voir-tag' => new Hashtag(),
             default => new DefaultAction(),
         };

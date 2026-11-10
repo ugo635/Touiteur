@@ -19,11 +19,13 @@ class Profile extends Action{
         HTML;
         }
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
-
-        //TODO: remplacer val par defaut
         $nbFollowers = 0;
         $nbFollows = 0;
-        $dateCreation = unserialize($_SESSION['user'])->creationDate;
+        $profil = TouiteurRepository::getInstance()->findUserByUsername($user);
+        if ($profil === null) {
+            return "<h1 class='text-2xl font-bold text-center p-8'>Compte non existant</h1>";
+        }
+        $dateCreation =$profil->creationDate;
 
         //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";
