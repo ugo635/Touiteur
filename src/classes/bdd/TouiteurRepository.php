@@ -262,5 +262,35 @@ class TouiteurRepository {
         return $touites;
     }
 
+    /**
+     * detecte les hashtags de sortes a faire une liste de ceux ci pour les ajouté a la base
+     * @param string $touite
+     * @return void
+     */
+    public function saveTags(string $touite): void {
+        foreach ($touite->getListeTag() as $tag){
+            $qInsertTag = "INSERT INTO tag (libelle) VALUES (:tag)";
+            $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
+            $qIdTouite = "SELECT id_touite FROM touite WHERE message = :touite";
+            $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
+            //insert dans tag
+            $stmt1 = $this->pdo->prepare($qInsertTag);
+            $stmt1->execute(['tag' => $tag]);
+
+            //get id_tag
+            $stmt2 = $this->pdo->prepare($qIdTag);
+            $stmt2->execute(['tag' => $tag]);
+
+            //get id_touite
+            $stmt3 = $this->pdo->prepare($qIdTouite);
+            $stmt3=execute(['touite' => $touite]);
+
+            //insert dans touite_tag
+            $stmt3 = $this->pdo->prepare($qInsertTabTouite);
+            $stmt3->execute([$stmt3, $stmt2->fetchColumn()]);
+        }
+
+    }
+
 
 }

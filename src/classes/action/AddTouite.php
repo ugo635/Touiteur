@@ -32,8 +32,12 @@ class AddTouite extends Action {
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
         }
+
         //cree un nouveau touite et sauvegarde
         TouiteurRepository::getInstance()->saveTouite($touite);
+
+        //ajoute les tags a la bdd
+        TouiteurRepository::addTags($touite);
 
         return "<p class='p-2 text-green-600'>Touite publié !</p>"
             . RendererFactory::getRenderer($touite)->render();
