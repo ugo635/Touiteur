@@ -36,7 +36,7 @@ class Profile extends Action {
         $nbFollows = $repo->countFollows($formattedUsernameForRequest);
 
         $dateCreation = unserialize($_SESSION["user"])->creationDate;
-        $profil = TouiteurRepository::getInstance()->findUserByUsername($user);
+        $profil = TouiteurRepository::getInstance()->findUserByUsername($formattedUsernameForRequest);
 
         //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";
@@ -66,9 +66,10 @@ class Profile extends Action {
 
         //recuperation touites de l'utilisateur
         try{
-            $touites= TouiteurRepository::getInstance()->findTouitesByUser($user);
+            $touites= TouiteurRepository::getInstance()->findTouitesByUser($formattedUsernameForRequest);
         } catch (\Exception $e) {
            //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
+            echo $e->getMessage();
         }
 
         //si vide on dis qu'il n'y en a pas

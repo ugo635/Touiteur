@@ -62,7 +62,7 @@ class TouiteurRepository {
             );
 
             $stmtUser->execute([
-                'username' => $touite->user->username
+                'username' => $touite->user->formattedUsername
             ]);
 
             if (!$stmtUser->fetch()) {
@@ -74,7 +74,7 @@ class TouiteurRepository {
             );
 
             $stmtTouite->execute([
-                'username' => $touite->user->username,
+                'username' => $touite->user->formattedUsername,
                 'message' => $touite->message
             ]);
 
@@ -87,23 +87,33 @@ class TouiteurRepository {
         }
     }
 
+    /**
+     * @param string $username username au format (Nom Prenom) en minuscule et sans espace
+     * @return User|null
+     */
     public function findUserByUsername(string $username): ?User {
-        $query = "SELECT username, nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
+        $query = "SELECT nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
               FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row
-            ? new User($row["USERNAME"], $row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
+            ? new User($row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
             : null;
     }
 
+    /**
+     * @param string $username username au format (Nom Prenom) en minuscule et sans espace
+     * @return array
+     */
     public function findTouitesByUser(string $username): array {
         $query = "
-            SELECT id_touite, message, date_touite, nb_like, username
+            SELECT message, nom, prenom,
+                   TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
             FROM touite
-            WHERE username = :username
+            JOIN utilisateur ON touite.username = utilisateur.username
+            WHERE touite.username = :username
             ORDER BY date_touite DESC
         ";
 
@@ -111,9 +121,8 @@ class TouiteurRepository {
         $stmt->execute(['username' => $username]);
 
         $touites = [];
-
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['USERNAME']);
+            $user = new User($row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
             $touites[] = new Touite($row['MESSAGE'], $user);
         }
 
@@ -132,7 +141,7 @@ class TouiteurRepository {
         $touites = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['USERNAME']);
+            $user = new User($row['NOM'], $row['PRENOM'], $row["DATE_TOUITE"]);
             $touites[] = new Touite($row['MESSAGE'], $user);
         }
 

@@ -24,6 +24,7 @@ class User {
     public function __get(string $at): mixed {
         if (property_exists ($this, $at)) return $this->$at;
         else if ($at == "username") return "$this->nom $this->prenom";
+        else if ($at == "formattedUsername") return strtolower(str_replace(" ", "", $this->username));
         throw new InvalidPropertyNameException("$at: invalid property");
     }
     

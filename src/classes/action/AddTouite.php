@@ -16,7 +16,7 @@ class AddTouite extends Action {
     }
 
     public function get(): string {
-        return "<h1 class='text-2xl text-center'>Poster un trouite</h1>" . $this->form();;
+        return "<h1 class='text-2xl text-center'>Poster un trouite</h1>" . $this->form();
     }
 
     public function post(): string {
@@ -30,14 +30,13 @@ class AddTouite extends Action {
             return $this->error("Le message ne peut pas être vide.") . $this->form();
         }
         $repo = TouiteurRepository::getInstance();
-        var_dump($_SESSION["user"]);
-        $user = $repo->findUserByUsername($_SESSION["user"]->username);
+        $user = $repo->findUserByUsername(unserialize($_SESSION["user"])->formattedUsername);
         if ($user === null) {
             return $this->error("Utilisateur introuvable.") . $this->form($message);
         }
         try {
             $touite = new Touite($message,$user );
-            $user = $repo->findUserByUsername($_SESSION["user"]->username);
+            $user = $repo->findUserByUsername(unserialize($_SESSION["user"])->formattedUsername);
             $touite = new Touite($message,$user);
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
@@ -45,8 +44,6 @@ class AddTouite extends Action {
 
         //cree un nouveau touite
         $repo->saveTouite($touite);
-        //cree un nouveau touite et sauvegarde
-        TouiteurRepository::getInstance()->saveTouite($touite);
 
         //ajoute les tags a la bdd
        // TouiteurRepository::addTags($touite);
@@ -72,7 +69,7 @@ class AddTouite extends Action {
         <div class="flex items-center justify-between border-t pt-3">
             <span id="compteur" class="text-sm text-gray-500">0 / 235</span>
         <button type="submit"
-        class="px-5 py-2 bg-gray-800 text-white font-medium rounded-full">
+        class="px-5 py-2 bg-gray-800 text-white font-medium rounded-full cursor-pointer">
              Publier
         </button>
         </div>
