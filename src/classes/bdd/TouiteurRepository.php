@@ -251,24 +251,24 @@ class TouiteurRepository {
         return $row ? $row['DATE_CREATION'] : null;
     }
 
-    public function isFollowing(string $abonne, string $suivi): bool {
+    public function isFollowing(string $suiveur, string $suivi): bool {
         $stmt = $this->pdo->prepare(
             "SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
         );
-        $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+        $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
     /**
      * Suit un utilisateur
      *
-     * @param string $abonne La personne suivi
-     * @param string $suivi La personne qui suit l'autre
+     * @param string $suivi La personne suivi
+     * @param string $suiveur La personne qui suit l'autre
      * @return bool Est-ce que la personne a bien été follow, si false, il y a eu une erreur
      */
-    public function follow(string $abonne, string $suivi): bool {
-        if ($abonne === $suivi || !$this->userExists($suivi)
-            || $this->isFollowing($abonne, $suivi) || $suivi == ($_SESSION["user"]->username ?? "")) {
+    public function follow(string $suiveur, string $suivi): bool {
+        if ($suiveur === $suivi || !$this->userExists($suivi)
+            || $this->isFollowing($suiveur, $suivi) || $suivi == ($_SESSION["user"]->username ?? "")) {
             return false;
         }
 
@@ -276,7 +276,7 @@ class TouiteurRepository {
             $stmt = $this->pdo->prepare(
                 "INSERT INTO abonnement_utilisateur (abonne, suivi) VALUES (:abonne, :suivi)"
             );
-            $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+            $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
             return true;
         } catch (PDOException $e) {
             // Refus par un trigger (ex : même email)
@@ -287,15 +287,15 @@ class TouiteurRepository {
     /**
      * Retire le suivi sur un utilisateur
      *
-     * @param string $abonne La personne qui ne sera plus suivi
-     * @param string $suivi La personne qui va retirer son suivi
+     * @param string $suivi La personne qui ne sera plus suivi
+     * @param string $suiveur La personne qui va retirer son suivi
      * @return bool Est-ce que le follow a bien été retirer
      */
-    public function unfollow(string $abonne, string $suivi): bool {
+    public function unfollow(string $suiveur, string $suivi): bool {
         $stmt = $this->pdo->prepare(
             "DELETE FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
         );
-        $stmt->execute(['abonne' => $abonne, 'suivi' => $suivi]);
+        $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
         return $stmt->rowCount() > 0;
     }
 
