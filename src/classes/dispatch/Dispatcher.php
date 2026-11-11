@@ -2,6 +2,7 @@
 
 namespace iutnc\touiteur\dispatch;
 
+use iutnc\touiteur\action\api\Follow;
 use iutnc\touiteur\action\api\Like;
 use iutnc\touiteur\action\DefaultAction;
 use iutnc\touiteur\action\AddTouite;
@@ -24,6 +25,7 @@ class Dispatcher {
             'profile' => new Profile(),
             'followers' => new FollowList('followers'),
             'follows' => new FollowList('follows'),
+            'follow' => new Follow(),
             default => new DefaultAction(),
         };
 

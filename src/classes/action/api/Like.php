@@ -14,7 +14,7 @@ class Like extends ApiAction {
 
         if (!$post || !in_array($change, [1, -1])) {
             http_response_code(400);
-            return "Requête invalide";
+            return "Requete invalide";
         }
 
         $repo = TouiteurRepository::getInstance();

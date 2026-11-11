@@ -264,6 +264,13 @@ class TouiteurRepository {
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
+    /**
+     * Suit un utilisateur
+     *
+     * @param string $abonne La personne suivi
+     * @param string $suivi La personne qui suit l'autre
+     * @return bool Est-ce que la personne a bien été follow
+     */
     public function follow(string $abonne, string $suivi): bool {
         if ($abonne === $suivi || !$this->userExists($suivi) || $this->isFollowing($abonne, $suivi)) {
             return false;
@@ -281,6 +288,13 @@ class TouiteurRepository {
         }
     }
 
+    /**
+     * Retire le suivi sur un utilisateur
+     *
+     * @param string $abonne La personne qui ne sera plus suivi
+     * @param string $suivi La personne qui va retirer son suivi
+     * @return bool Est-ce que le follow a bien été retirer
+     */
     public function unfollow(string $abonne, string $suivi): bool {
         $stmt = $this->pdo->prepare(
             "DELETE FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
