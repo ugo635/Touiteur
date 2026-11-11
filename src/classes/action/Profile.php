@@ -3,6 +3,7 @@
 namespace iutnc\touiteur\action;
 
 use iutnc\touiteur\bdd\TouiteurRepository;
+use iutnc\touiteur\render\Renderer;
 use iutnc\touiteur\render\RendererFactory;
 
 
@@ -34,7 +35,7 @@ class Profile extends Action {
         $nbFollowers = $repo->countFollowers($formattedUsernameForRequest);
         $nbFollows = $repo->countFollows($formattedUsernameForRequest);
 
-        $dateCreation = unserialize($_SESSION['user'])->creationDate;
+        $dateCreation = unserialize($_SESSION["user"])->creationDate;
         $profil = TouiteurRepository::getInstance()->findUserByUsername($user);
 
         //regarde si touites ou likes, touites par defaut
@@ -76,7 +77,7 @@ class Profile extends Action {
             $touitesHtml = '<p class="text-gray-500 text-center py-8">Aucun touite pour cet utilisateur.</p>';
         } else { //sinon on affiche les touites avec le renderer
             foreach ($touites as $touite) {
-                $touitesHtml .= RendererFactory::getRenderer($touite)->render();
+                $touitesHtml .= RendererFactory::getRenderer($touite)->render(Renderer::LONG);
             }
         }
         return <<<HTML

@@ -54,7 +54,7 @@ class Login extends Action {
         if ($type == "login") {
             try {
                 $user = TouiteurRepository::getInstance()->checkUser($email,$password);
-                $_SESSION["username"] = $user->username;
+                $_SESSION["user"] = serialize($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Vous etes connecter!</p></div>";
             } catch (InvalidPassword $e) {
                 return $this->get() .
@@ -65,7 +65,7 @@ class Login extends Action {
         } else if ($type == "register") {
             try {
                 $user = TouiteurRepository::getInstance()->createUser($email, $nom, $prenom, $password);
-                $_SESSION["username"] = $user->username;
+                $_SESSION["user"] = serialize($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Utilisateur créer avec succès</p></div>";
             } catch (UnableToCreateUser $e) {
                 return $this->get() . "<br><div class='flex justify-center'>

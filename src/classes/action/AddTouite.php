@@ -20,7 +20,7 @@ class AddTouite extends Action {
     }
 
     public function post(): string {
-        if (!isset($_SESSION['username'])) {
+        if (!isset($_SESSION["user"])) {
             return "Tu dois être connecté pour poster.";
         }
         //permet de retirer les espaces au debut et a la fin
@@ -30,14 +30,14 @@ class AddTouite extends Action {
             return $this->error("Le message ne peut pas être vide.") . $this->form();
         }
         $repo = TouiteurRepository::getInstance();
-        var_dump($_SESSION['username']);
-        $user = $repo->findUserByUsername($_SESSION['username']);
+        var_dump($_SESSION["user"]);
+        $user = $repo->findUserByUsername($_SESSION["user"]->username);
         if ($user === null) {
             return $this->error("Utilisateur introuvable.") . $this->form($message);
         }
         try {
             $touite = new Touite($message,$user );
-            $user = $repo->findUserByUsername($_SESSION['username']);
+            $user = $repo->findUserByUsername($_SESSION["user"]->username);
             $touite = new Touite($message,$user);
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
