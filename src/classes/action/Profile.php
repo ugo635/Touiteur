@@ -17,19 +17,20 @@ class Profile extends Action {
         }
 
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
+        $formattedUsernameForRequest = $this::formatUser($user);
 
         $repo = TouiteurRepository::getInstance();
 
         //                       Adapte le format pour match celui utiliser lors du check
-        if (!$repo->userExists(strtolower(str_replace(" ", "", $user)))) return <<<HTML
+        if (!$repo->userExists($formattedUsernameForRequest)) return <<<HTML
             <div class="p-8 text-center">
                 <h1 class="text-2xl font-bold mb-6 underline text-red-600">L'utilisateur n'existe pas</h1>
             </div>
         HTML;
 
 
-        $nbFollowers = $repo->countFollowers($_GET['username']);
-        $nbFollows = $repo->countFollows($_GET['username']);
+        $nbFollowers = $repo->countFollowers($formattedUsernameForRequest);
+        $nbFollows = $repo->countFollows($formattedUsernameForRequest);
 
         $dateCreation = unserialize($_SESSION['user'])->creationDate;
 
@@ -39,23 +40,24 @@ class Profile extends Action {
         $formatLikes = ($tab === 'likes') ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
 
         $moi = unserialize($_SESSION["user"])->username;
+        $formattedMoi = $this::formatUser($moi);
 
-        $estDejaSuivi = $repo->isFollowing($user, $moi);
+        $estDejaSuivi = $repo->isFollowing($formattedMoi, $formattedUsernameForRequest);
 
         $unfollowBtn = <<<HTML
-                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', false)">
+                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$formattedUsernameForRequest', '$formattedMoi', false)">
                     Unfollow -
                 </button>
             HTML;
 
         $followBtn = <<<HTML
-            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', true)">
+            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$formattedUsernameForRequest', '$formattedMoi', true)">
                 Follow +
             </button>
         HTML;
 
         $boutonFollow = $estDejaSuivi ? $unfollowBtn : $followBtn;
-        if ($moi == $user) $boutonFollow = ""; // Pas de btn follow pr soit meme
+        if ($moi === $user) $boutonFollow = ""; // Pas de btn follow pr soit meme
 
 
         return <<<HTML
@@ -132,5 +134,9 @@ class Profile extends Action {
 
     public function post(): string {
         return "";
+    }
+
+    private static function formatUser(string $user) {
+        return strtolower(str_replace(" ", "", $user));
     }
 }
