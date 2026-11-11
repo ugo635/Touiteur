@@ -47,7 +47,7 @@ class Login extends Action {
     }
 
     public function post(): string {
-        $username = trim($_POST["username"] ?? "");
+        $username = strtolower(trim($_POST["username"] ?? ""));
         $nom = trim($_POST["nom"] ?? "");
         $prenom = trim($_POST["prenom"] ?? "");
         $password = $_POST["password"] ?? "";

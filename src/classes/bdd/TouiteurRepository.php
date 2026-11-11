@@ -284,27 +284,38 @@ class TouiteurRepository {
      */
     public function saveTags(Touite $touite): void {
         foreach ($touite->getListeTag() as $tag){
-            $qInsertTag = "INSERT INTO tag (libelle) VALUES (:tag)";
-            $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
-            $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite";
-            $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
-            //insert dans tag
-            $stmt1 = $this->pdo->prepare($qInsertTag);
-            $stmt1->execute(['tag' => $tag]);
+            $this->pdo->beginTransaction();
+            try{
+                $stmtCheck = $this->pdo->prepare("SELECT count(id_tag) FROM tag WHERE libelle = :tag");
+                $stmtCheck->execute(['tag' => $tag]);
+                if($stmtCheck->fetchColumn() == 0){
+                    //insert dans tag
+                    $stmtInsert = $this->pdo->prepare("INSERT INTO tag (libelle) VALUES (:tag)");
+                    $stmtInsert->execute(['tag' => $tag]);
+                }
+                $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
+                $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite";
+                $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
 
-            //get id_tag
-            $stmt2 = $this->pdo->prepare($qIdTag);
-            $stmt2->execute(['tag' => $tag]);
+                //get id_tag
+                $stmt2 = $this->pdo->prepare($qIdTag);
+                $stmt2->execute(['tag' => $tag]);
 
-            //get id_touite
-            $stmt3 = $this->pdo->prepare($qIdTouite);
-            $stmt3->execute(['msgtouite' => $touite->msg]);
+                //get id_touite
+                $stmt3 = $this->pdo->prepare($qIdTouite);
+                $stmt3->execute(['msgtouite' => $touite->msg]);
 
-            //insert dans touite_tag
-            $stmt4 = $this->pdo->prepare($qInsertTabTouite);
-            $stmt4->execute([$stmt3->fetchColumn(), $stmt2->fetchColumn()]);
-        }
+                //insert dans touite_tag
+                $stmt4 = $this->pdo->prepare($qInsertTabTouite);
+                $stmt4->execute([$stmt3->fetchColumn(), $stmt2->fetchColumn()]);
 
+                $this->pdo->commit();
+            }catch (Exception $e) {
+                $this->pdo->rollBack();
+                throw $e;
+            }
+
+       }
     }
 
 
