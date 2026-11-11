@@ -332,7 +332,7 @@ class TouiteurRepository {
      */
     public function follow(string $suiveur, string $suivi): bool {
         if ($suiveur === $suivi || !$this->userExists($suivi)
-            || $this->isFollowing($suiveur, $suivi) || $suivi == ($_SESSION["user"]->username ?? "")) {
+            || $this->isFollowing($suiveur, $suivi) || $suivi == (unserialize($_SESSION["user"])->username ?? "")) {
             return false;
         }
 

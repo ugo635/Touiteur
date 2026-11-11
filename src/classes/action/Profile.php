@@ -34,7 +34,7 @@ class Profile extends Action {
         $nbFollowers = $repo->countFollowers($formattedUsernameForRequest);
         $nbFollows = $repo->countFollows($formattedUsernameForRequest);
 
-        $dateCreation = unserialize($_SESSION['user'])->creationDate;
+        $dateCreation = unserialize($_SESSION["user"])->creationDate;
         $profil = TouiteurRepository::getInstance()->findUserByUsername($user);
 
         //regarde si touites ou likes, touites par defaut
