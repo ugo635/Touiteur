@@ -239,7 +239,7 @@ class TouiteurRepository {
     public function userExists(string $username): bool {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM utilisateur WHERE username = :username");
         $stmt->execute(['username' => $username]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+        return $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
     public function getCreationDate(string $username): ?string {
@@ -264,10 +264,11 @@ class TouiteurRepository {
      *
      * @param string $abonne La personne suivi
      * @param string $suivi La personne qui suit l'autre
-     * @return bool Est-ce que la personne a bien été follow
+     * @return bool Est-ce que la personne a bien été follow, si false, il y a eu une erreur
      */
     public function follow(string $abonne, string $suivi): bool {
-        if ($abonne === $suivi || !$this->userExists($suivi) || $this->isFollowing($abonne, $suivi)) {
+        if ($abonne === $suivi || !$this->userExists($suivi)
+            || $this->isFollowing($abonne, $suivi) || $suivi == ($_SESSION["user"]->username ?? "")) {
             return false;
         }
 

@@ -6,18 +6,28 @@ use iutnc\touiteur\bdd\TouiteurRepository;
 
 class Profile extends Action {
     public function get(): string {
-        $user = $_GET['username'] ?? null;
+        $user = str_replace("%20", " ", $_GET['username'] ?? "");
         //TODO: vérification de si utilisateur existe
         if ($user === null|| $user === "") {
             return <<<HTML
-        <div class="p-8 text-center">
-            <h1 class="text-2xl font-bold mb-6 underline text-blue-600"><a href="?action=login">Vous n'etes pas connecter, veuillez vous connectez ici</a></h1>
-        </div>
-        HTML;
+                <div class="p-8 text-center">
+                    <h1 class="text-2xl font-bold mb-6 underline text-blue-600"><a href="?action=login">Vous n'etes pas connecter, veuillez vous connectez ici</a></h1>
+                </div>
+            HTML;
         }
+
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
 
         $repo = TouiteurRepository::getInstance();
+
+        //                       Adapte le format pour match celui utiliser lors du check
+        if (!$repo->userExists(strtolower(str_replace(" ", "", $user)))) return <<<HTML
+            <div class="p-8 text-center">
+                <h1 class="text-2xl font-bold mb-6 underline text-red-600">L'utilisateur n'existe pas</h1>
+            </div>
+        HTML;
+
+
         $nbFollowers = $repo->countFollowers($_GET['username']);
         $nbFollows = $repo->countFollows($_GET['username']);
 
@@ -32,23 +42,20 @@ class Profile extends Action {
 
         $estDejaSuivi = $repo->isFollowing($user, $moi);
 
-        $followBtn = <<<HTML
-                <div>
-                    <button id="followBtn" class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', false)">
-                        Unfollow -
-                    </button>
-                 </div>
+        $unfollowBtn = <<<HTML
+                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', false)">
+                    Unfollow -
+                </button>
             HTML;
 
-        $unfollowBtn = <<<HTML
-            <div>
-                <button id="followBtn" class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', true)">
-                    Follow +
-                </button>
-             </div>
+        $followBtn = <<<HTML
+            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', true)">
+                Follow +
+            </button>
         HTML;
 
-        $boutonFollow = $estDejaSuivi ? $followBtn : $unfollowBtn;
+        $boutonFollow = $estDejaSuivi ? $unfollowBtn : $followBtn;
+        if ($moi == $user) $boutonFollow = ""; // Pas de btn follow pr soit meme
 
 
         return <<<HTML
@@ -75,7 +82,9 @@ class Profile extends Action {
              <!--date creation-->
              <p class="text-gray-500 mb-4">$dateCreation</p>    
              
-             $boutonFollow
+             <div id="followBtn">
+                $boutonFollow
+             </div>
              
              <!--barre touites/likes-->
              <div class="flex border-b border-gray-200 w-full">
@@ -110,11 +119,12 @@ class Profile extends Action {
             
                     // Tout est bon donc on fait les changement coté client, on remplace le btn par son contraire
                     // (follow -> unfollow) ou (unfollow -> follow)
-                    document.querySelector("#followBtn").replaceWith('$unfollowBtn');
+                    if (ajouterOuPas) document.querySelector("#followBtn").innerHTML = `$unfollowBtn`;
+                    else document.querySelector("#followBtn").innerHTML = `$followBtn`;
                     
                     // On change le nombre d'abonnée pour compter celui qu'on vient d'ajouter
                     const changement = ajouterOuPas ? 1 : -1;
-                    document.querySelector("#nb-follow").textContent = document.querySelector("#nb-follow").textContent + changement;
+                    document.querySelector("#nb-follow").textContent = parseInt(document.querySelector("#nb-follow").textContent) + changement;
             }
         </script>
         HTML;

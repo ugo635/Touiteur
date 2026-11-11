@@ -11,9 +11,10 @@ class Follow extends ApiAction {
     }
 
     public function post(): string {
-        $suivi = $_POST["suivi"];
-        $suiveur = $_POST["suiveur"];
-        $ajout = $_POST["ajout"];
+        $data = $this->getData();
+        $suivi = strtolower(str_replace(" ", "", $data["suivi"] ?? null));
+        $suiveur = strtolower(str_replace(" ", "", $data["suiveur"] ?? null));
+        $ajout = $data["ajout"] ?? null;
 
         $repo = TouiteurRepository::getInstance();
 
