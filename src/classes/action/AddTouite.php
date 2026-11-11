@@ -20,7 +20,7 @@ class AddTouite extends Action {
     }
 
     public function post(): string {
-        if (!isset($_SESSION["user"])) {
+        if (!isset($_SESSION["username"])) {
             return "Tu dois être connecté pour poster.";
         }
         //permet de retirer les espaces au debut et a la fin
@@ -30,14 +30,12 @@ class AddTouite extends Action {
             return $this->error("Le message ne peut pas être vide.") . $this->form();
         }
         $repo = TouiteurRepository::getInstance();
-        $user = $repo->findUserByUsername(unserialize($_SESSION["user"])->formattedUsername);
+        $user = $repo->findUserByUsername($_SESSION["username"]);
         if ($user === null) {
             return $this->error("Utilisateur introuvable.") . $this->form($message);
         }
         try {
             $touite = new Touite($message,$user );
-            $user = $repo->findUserByUsername(unserialize($_SESSION["user"])->formattedUsername);
-            $touite = new Touite($message,$user);
         } catch (MessageTooBig $e) {
             return $this->error("235 caractères maximum") . $this->form($message);
         }
@@ -46,7 +44,7 @@ class AddTouite extends Action {
         $repo->saveTouite($touite);
 
         //ajoute les tags a la bdd
-       // TouiteurRepository::addTags($touite);
+        TouiteurRepository::saveTags($touite);
 
         return "<p class='p-2 text-green-600'>Touite publié !</p>"
             . RendererFactory::getRenderer($touite)->render();

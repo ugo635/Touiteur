@@ -6,6 +6,7 @@ use iutnc\touiteur\bdd\TouiteurRepository;
 use iutnc\touiteur\exception\exception\InvalidPassword;
 use iutnc\touiteur\exception\exception\UnableToCreateUser;
 use iutnc\touiteur\exception\exception\UnknownUser;
+use iutnc\touiteur\users\User;
 
 class Login extends Action {
 
@@ -15,6 +16,11 @@ class Login extends Action {
                 <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
                     <legend class="px-2 font-medium">Email</legend>
                     <input type="email" name="email" class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
+                </fieldset>
+                <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
+                    <legend class="px-2 font-medium">Nom d'utilisateur</legend>
+                    <input type="text" name="username"
+                           class="border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500">
                 </fieldset>
                 <fieldset class="flex flex-col items-center border border-gray-400 p-4 rounded">
                     <legend class="px-2 font-medium">Nom</legend>
@@ -41,20 +47,21 @@ class Login extends Action {
     }
 
     public function post(): string {
-        $nom = $_POST["nom"] ?? "";
-        $prenom = $_POST["prenom"] ?? "";
+        $username = trim($_POST["username"] ?? "");
+        $nom = trim($_POST["nom"] ?? "");
+        $prenom = trim($_POST["prenom"] ?? "");
         $password = $_POST["password"] ?? "";
-        $email = $_POST["email"] ?? "";
+        $email = trim($_POST["email"] ?? "");
         $type = $_POST["submit"] ?? "";
 
-        if ($nom === "" || $prenom === "" || $password === "" || $email === "") {
+        if ($username === "" || $nom === "" || $prenom === "" || $password === "" || $email === "") {
             return $this->get() . "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Veuillez remplir tous les champs.</p></div>";
         }
 
         if ($type == "login") {
             try {
-                $user = TouiteurRepository::getInstance()->checkUser($email,$password);
-                $_SESSION["user"] = serialize($user);
+                $user = TouiteurRepository::getInstance()->checkUser($email, $password);
+                $this->openSession($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Vous etes connecter!</p></div>";
             } catch (InvalidPassword $e) {
                 return $this->get() .
@@ -64,8 +71,8 @@ class Login extends Action {
             }
         } else if ($type == "register") {
             try {
-                $user = TouiteurRepository::getInstance()->createUser($email, $nom, $prenom, $password);
-                $_SESSION["user"] = serialize($user);
+                $user = TouiteurRepository::getInstance()->createUser($username, $email, $nom, $prenom, $password);
+                $this->openSession($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Utilisateur créer avec succès</p></div>";
             } catch (UnableToCreateUser $e) {
                 return $this->get() . "<br><div class='flex justify-center'>
@@ -74,5 +81,16 @@ class Login extends Action {
         }
 
         return "<br><div class='flex justify-center'><p class='text-red-500 font-medium'>Erreur Serveur</p></div>";
+    }
+
+    /**
+     * Ouvre une session pour l'utilisateur qui se connecte
+     * @param User $user
+     * @return void
+     */
+    private function openSession(User $user): void {
+        session_regenerate_id(true);
+        $_SESSION["user"] = serialize($user);
+        $_SESSION["username"] = $user->username;
     }
 }

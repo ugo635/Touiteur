@@ -88,18 +88,18 @@ class TouiteurRepository {
     }
 
     /**
-     * @param string $username username au format (Nom Prenom) en minuscule et sans espace
+     * @param string $username
      * @return User|null
      */
     public function findUserByUsername(string $username): ?User {
-        $query = "SELECT nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
+        $query = "SELECT username,nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
               FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $row
-            ? new User($row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
+            ? new User($row["USERNAME"] ,$row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
             : null;
     }
 
@@ -109,7 +109,7 @@ class TouiteurRepository {
      */
     public function findTouitesByUser(string $username): array {
         $query = "
-            SELECT message, nom, prenom,
+            SELECT message, utilisateur.username, nom, prenom,
                    TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
             FROM touite
             JOIN utilisateur ON touite.username = utilisateur.username
@@ -122,7 +122,7 @@ class TouiteurRepository {
 
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
+            $user = new User($row['USERNAME'],$row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
             $touites[] = new Touite($row['MESSAGE'], $user);
         }
 
@@ -141,7 +141,7 @@ class TouiteurRepository {
         $touites = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['NOM'], $row['PRENOM'], $row["DATE_TOUITE"]);
+            $user = new User($row['username'], null, null, $row['date_creation']);
             $touites[] = new Touite($row['MESSAGE'], $user);
         }
 
@@ -149,7 +149,8 @@ class TouiteurRepository {
     }
 
     public function checkUser(string $email, string $password): User {
-        $query = "SELECT nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation FROM utilisateur WHERE email = :email AND mdp = :password";
+        $query = "SELECT username,nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
+                FROM utilisateur WHERE email = :email AND mdp = :password";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
@@ -161,7 +162,7 @@ class TouiteurRepository {
 
         if ($row) {
             $date = $row['DATE_CREATION'];
-            return new User($row['NOM'], $row["PRENOM"], $date);
+            return new User($row['USERNAME'],$row['NOM'], $row["PRENOM"], $date);
         }
 
         $query = "SELECT email FROM utilisateur WHERE email = :email";
@@ -178,8 +179,7 @@ class TouiteurRepository {
         throw new UnknownUser("Utilisateur inconnu");
     }
 
-    public function createUser(string $email, string $nom, string $prenom, string $password): User {
-        $username = strtolower($prenom . $nom);
+    public function createUser(string $username,string $email, string $nom, string $prenom, string $password): User {
         $creationDate = date('d/m/y');
 
         $query = "INSERT INTO utilisateur (username, nom, prenom, mdp, email, date_creation) VALUES (:username, :nom, :prenom, :password, :email, SYSDATE)";
@@ -197,7 +197,7 @@ class TouiteurRepository {
             throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
         }
 
-        return new User($nom, $prenom, $creationDate);
+        return new User($username, $nom, $prenom, $creationDate);
     }
 
     public function getUserProfile(string $username): ?array {

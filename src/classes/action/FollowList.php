@@ -15,9 +15,7 @@ class FollowList extends Action {
 
     // Renvoie le username de l'utilisateur connecté, ou null
     private function currentUsername(): ?string {
-        return isset($_SESSION["user"])
-            ? unserialize($_SESSION["user"])->username
-            : null;
+        return $_SESSION["username"] ?? null;
     }
 
     public function get(): string {

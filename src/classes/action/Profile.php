@@ -9,8 +9,7 @@ use iutnc\touiteur\render\RendererFactory;
 
 class Profile extends Action {
     public function get(): string {
-        $user = str_replace("%20", " ", $_GET['username'] ?? "");
-        //TODO: vérification de si utilisateur existe
+        $user = $_GET['username'] ?? "";
         if ($user === null|| $user === "") {
             return <<<HTML
                 <div class="p-8 text-center">
@@ -20,53 +19,49 @@ class Profile extends Action {
         }
 
         $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
-        $formattedUsernameForRequest = $this::formatUser($user);
-
+        
+        //cherche l'utilisateur dans la bdd et si il n'existe pas retourne un msg
         $repo = TouiteurRepository::getInstance();
-
-        //                       Adapte le format pour match celui utiliser lors du check
-        if (!$repo->userExists($formattedUsernameForRequest)) return <<<HTML
+        $profil = $repo->findUserByUsername($user);
+        if ($profil === null) return <<<HTML
             <div class="p-8 text-center">
                 <h1 class="text-2xl font-bold mb-6 underline text-red-600">L'utilisateur n'existe pas</h1>
             </div>
         HTML;
 
 
-        $nbFollowers = $repo->countFollowers($formattedUsernameForRequest);
-        $nbFollows = $repo->countFollows($formattedUsernameForRequest);
-
-        $dateCreation = unserialize($_SESSION["user"])->creationDate;
-        $profil = TouiteurRepository::getInstance()->findUserByUsername($formattedUsernameForRequest);
+        $nbFollowers = $repo->countFollowers($user);
+        $nbFollows = $repo->countFollows($user);
+        $dateCreation = $profil->creationDate;
 
         //regarde si touites ou likes, touites par defaut
         $tab=$_GET['tab'] ?? "touites";
         $formatTouites=($tab === "touites") ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
         $formatLikes = ($tab === 'likes') ? "border-black-500 text-black-600 font-bold hover:bg-gray-50" : "border-transparent text-gray-500 hover:text-black-500 hover:bg-gray-50";
 
-        $moi = unserialize($_SESSION["user"])->username;
-        $formattedMoi = $this::formatUser($moi);
+        $moi = $_SESSION["username"] ?? "";
 
-        $estDejaSuivi = $repo->isFollowing($formattedMoi, $formattedUsernameForRequest);
+        $estDejaSuivi = $repo->isFollowing($moi, $user) && $moi !== $user && $user !== "" && $moi !== "";
 
         $unfollowBtn = <<<HTML
-                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$formattedUsernameForRequest', '$formattedMoi', false)">
+                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', false)">
                     Unfollow -
                 </button>
             HTML;
 
         $followBtn = <<<HTML
-            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$formattedUsernameForRequest', '$formattedMoi', true)">
+            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', true)">
                 Follow +
             </button>
         HTML;
 
         $boutonFollow = $estDejaSuivi ? $unfollowBtn : $followBtn;
-        if ($moi === $user) $boutonFollow = ""; // Pas de btn follow pr soit meme
+        if ($moi === $user || $moi==="") $boutonFollow = ""; // Pas de btn follow pr soit meme ou si on est pas connécté
 
 
         //recuperation touites de l'utilisateur
         try{
-            $touites= TouiteurRepository::getInstance()->findTouitesByUser($formattedUsernameForRequest);
+            $touites= TouiteurRepository::getInstance()->findTouitesByUser($user);
         } catch (\Exception $e) {
            //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
             echo $e->getMessage();
@@ -159,9 +154,5 @@ class Profile extends Action {
 
     public function post(): string {
         return "";
-    }
-
-    private static function formatUser(string $user) {
-        return strtolower(str_replace(" ", "", $user));
     }
 }

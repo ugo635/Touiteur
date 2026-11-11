@@ -15,7 +15,7 @@ abstract class Action {
 
     public function prefix(): string {
         $btn = "";
-        $username = unserialize($_SESSION["user"])->username ?? "";
+        $username = $_SESSION["username"] ?? "";
 
         $html = <<<HTML
         <!DOCTYPE html>
@@ -31,7 +31,7 @@ abstract class Action {
                 <a href="?action=add-touite" class="$btn">Poster</a>
         HTML;
 
-        if (!isset($_SESSION["user"])) {
+        if (!isset($_SESSION["username"])) {
             $html .= "<a href='?action=login' class='$btn'>Login</a>";
         } else {
             $html .= "<a href='?action=logout' class='$btn'>Déconnexion</a>";

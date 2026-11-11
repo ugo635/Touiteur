@@ -13,7 +13,7 @@ class Logout extends Action {
     }
 
     public function post(): string {
-        unset($_SESSION['username']);
+        unset($_SESSION['username'],$_SESSION['user']);
         session_regenerate_id(true);
 
         return "<br><div class='flex justify-center'>
