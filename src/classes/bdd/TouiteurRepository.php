@@ -294,7 +294,7 @@ class TouiteurRepository {
                     $stmtInsert->execute(['tag' => $tag]);
                 }
                 $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
-                $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite";
+                $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite ORDER BY id_touite DESC"; //inverse l'ordre pour avoir le plus recent si mm texte
                 $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
 
                 //get id_tag

@@ -45,7 +45,7 @@ class Touite {
 
     public function getListeTag(): array {
         preg_match_all('/#(\w+)/', $this->message, $m);
-        return $m[1];
+        return array_unique($m[1]); //array_unique enleve les doublon
     }
 
     public function getDate(): string {
