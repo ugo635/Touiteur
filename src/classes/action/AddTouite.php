@@ -44,7 +44,7 @@ class AddTouite extends Action {
         $repo->saveTouite($touite);
 
         //ajoute les tags a la bdd
-        TouiteurRepository::saveTags($touite);
+        $repo ->saveTags($touite);
 
         return "<p class='p-2 text-green-600'>Touite publié !</p>"
             . RendererFactory::getRenderer($touite)->render();

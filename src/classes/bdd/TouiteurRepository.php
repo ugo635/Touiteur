@@ -141,7 +141,7 @@ class TouiteurRepository {
         $touites = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['username'], null, null, $row['date_creation']);
+            $user = new User($row['USERNAME']);
             $touites[] = new Touite($row['MESSAGE'], $user);
         }
 
@@ -257,9 +257,10 @@ class TouiteurRepository {
     public function findTouitesByTag(string $tag): array {
         $query = "
             SELECT touite.*
-            FROM touite
-            JOIN touite_tag t ON t.id_touite = touite.id_touite
-            WHERE t.nom_tag = :tag
+            FROM touite t
+            JOIN touite_tag tt ON t.id_touite = tt.id_touite
+            JOIN tag ON tt.id_tag = tag.id_tag
+            WHERE tag.libelle = :tag
             ORDER BY date_touite DESC
         ";
 
@@ -281,11 +282,11 @@ class TouiteurRepository {
      * @param string $touite
      * @return void
      */
-    public function saveTags(string $touite): void {
+    public function saveTags(Touite $touite): void {
         foreach ($touite->getListeTag() as $tag){
             $qInsertTag = "INSERT INTO tag (libelle) VALUES (:tag)";
             $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
-            $qIdTouite = "SELECT id_touite FROM touite WHERE message = :touite";
+            $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite";
             $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
             //insert dans tag
             $stmt1 = $this->pdo->prepare($qInsertTag);
@@ -297,11 +298,11 @@ class TouiteurRepository {
 
             //get id_touite
             $stmt3 = $this->pdo->prepare($qIdTouite);
-            $stmt3=execute(['touite' => $touite]);
+            $stmt3->execute(['msgtouite' => $touite->msg]);
 
             //insert dans touite_tag
-            $stmt3 = $this->pdo->prepare($qInsertTabTouite);
-            $stmt3->execute([$stmt3, $stmt2->fetchColumn()]);
+            $stmt4 = $this->pdo->prepare($qInsertTabTouite);
+            $stmt4->execute([$stmt3->fetchColumn(), $stmt2->fetchColumn()]);
         }
 
     }

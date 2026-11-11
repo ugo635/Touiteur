@@ -36,6 +36,10 @@ class Touite {
             return $this->getListeTag();
         }
 
+        if ($attr == "msg" || $attr == "message") {
+            return $this->message;
+        }
+
         throw new InvalidPropertyNameException("$attr: Invalid property");
     }
 
