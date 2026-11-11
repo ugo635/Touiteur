@@ -10,17 +10,20 @@ class User {
     private array $tagfollows;
     private array $likes;
 
-    public function __construct(private string $username,private ?string $nom = null, private ?string $prenom = null, private ?string $creationDate = null) {
+    public function __construct(private ?string $nom = null, private ?string $prenom = null, private ?string $creationDate = null) {
         $this->touites = [];
         $this->followers = [];
         $this->follows = [];
         $this->tagfollows = [];
         $this->likes = [];
 
+        $this->tagfollows = [];
+        $this->likes = [];
     }
 
     public function __get(string $at): mixed {
         if (property_exists ($this, $at)) return $this->$at;
+        else if ($at == "username") return "$this->nom $this->prenom";
         throw new InvalidPropertyNameException("$at: invalid property");
     }
     

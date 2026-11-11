@@ -73,7 +73,7 @@ CREATE TABLE abonnement_tag (
         FOREIGN KEY (id_tag) REFERENCES tag(id_tag)
 );
 
-//Mettre à jour le nombre de touites d’un utilisateur
+-- 1. Mettre a jour le nombre de touites d un utilisateur
 CREATE OR REPLACE TRIGGER trg_touite_inc_nb
 AFTER INSERT ON touite
 FOR EACH ROW
@@ -82,9 +82,9 @@ BEGIN
     SET nb_touites = nb_touites + 1
     WHERE username = :NEW.username;
 END;
+/
 
-
-//Empêcher de se suivre soi-même ou de suivre un utilisateur avec le même email
+-- 2. Empecher de se suivre soi-meme ou de suivre un utilisateur avec le meme email
 CREATE OR REPLACE TRIGGER trg_verif_abonnement
 BEFORE INSERT OR UPDATE ON abonnement_utilisateur
 FOR EACH ROW
@@ -93,30 +93,31 @@ DECLARE
     v_email_suivi  utilisateur.email%TYPE;
 BEGIN
     IF :NEW.abonne = :NEW.suivi THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Interdiction de s''abonner à son propre compte.');
+        RAISE_APPLICATION_ERROR(-20001, 'Interdiction de s''abonner a son propre compte.');
     END IF;
 
     SELECT email INTO v_email_abonne FROM utilisateur WHERE username = :NEW.abonne;
     SELECT email INTO v_email_suivi  FROM utilisateur WHERE username = :NEW.suivi;
 
     IF v_email_abonne = v_email_suivi THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Interdiction de suivre un utilisateur partageant la même adresse email.');
+        RAISE_APPLICATION_ERROR(-20002, 'Interdiction de suivre un utilisateur partageant la meme adresse email.');
     END IF;
 END;
+/
 
-//Empêcher la modification de l'auteur d'un touite
+
+-- 3. Empecher la modification de l auteur d un touite
 CREATE OR REPLACE TRIGGER trg_touite_verif_auteur
 BEFORE UPDATE OF username ON touite
-    FOR EACH ROW
+FOR EACH ROW
 BEGIN
     IF :NEW.username != :OLD.username THEN
-        RAISE_APPLICATION_ERROR(-20003, 'Modification de l''auteur interdite : un touite conserve son créateur d''origine.');
-END IF;
+        RAISE_APPLICATION_ERROR(-20003, 'Modification de l''auteur interdite : un touite conserve son createur d''origine.');
+    END IF;
 END;
+/
 
-
-
-//Limiter un utilisateur à 50 touites par jour
+-- 4. Limiter un utilisateur a 50 touites par jour
 CREATE OR REPLACE TRIGGER trg_limite_touites_jour
 BEFORE INSERT ON touite
 FOR EACH ROW
@@ -130,6 +131,7 @@ BEGIN
       AND TRUNC(date_touite) = TRUNC(SYSDATE);
 
     IF v_nb_jour >= 50 THEN
-            RAISE_APPLICATION_ERROR(-20004, 'Limite atteinte : vous ne pouvez pas publier plus de 50 touites par jour.');
+        RAISE_APPLICATION_ERROR(-20004, 'Limite atteinte : vous ne pouvez pas publier plus de 50 touites par jour.');
     END IF;
 END;
+/
