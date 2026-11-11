@@ -256,7 +256,7 @@ class TouiteurRepository {
 
     public function findTouitesByTag(string $tag): array {
         $query = "
-            SELECT touite.*
+            SELECT t.*
             FROM touite t
             JOIN touite_tag tt ON t.id_touite = tt.id_touite
             JOIN tag ON tt.id_tag = tag.id_tag
