@@ -66,13 +66,7 @@ class TouiteurRepository {
             ]);
 
             if (!$stmtUser->fetch()) {
-                $stmtInsertUser = $this->pdo->prepare(
-                    "INSERT INTO utilisateur (username, mdp) VALUES (:username, 'Anonymous')"
-                );
-
-                $stmtInsertUser->execute([
-                    'username' => $touite->user->username
-                ]);
+                throw new UnknownUser("Utilisateur inconnu");
             }
 
             $stmtTouite = $this->pdo->prepare(
@@ -135,13 +129,12 @@ class TouiteurRepository {
         return $touites;
     }
 
-    public function checkUser(string $username, string $password): User {
-        // Si user & mdp valide, on renvoie user
-        $query = "SELECT username, date_creation FROM utilisateur WHERE username = :username AND mdp = :password";
+    public function checkUser(string $email, string $password): User {
+        $query = "SELECT nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation FROM utilisateur WHERE email = :email AND mdp = :password";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
-            'username' => $username,
+            'email' => $email,
             'password' => $password
         ]);
 
@@ -149,41 +142,43 @@ class TouiteurRepository {
 
         if ($row) {
             $date = $row['DATE_CREATION'];
-            return new User($row['USERNAME'], $date);
+            return new User($row['NOM'], $row["PRENOM"], $date);
         }
 
-        // Si mdp est invalide, on throw InvalidPassword
-        $query = "SELECT username FROM utilisateur WHERE username = :username";
+        $query = "SELECT email FROM utilisateur WHERE email = :email";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
-            "username" => $username
+            'email' => $email
         ]);
 
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($row) {
+        if ($stmt->fetch(PDO::FETCH_ASSOC)) {
             throw new InvalidPassword("MDP pas valide");
         }
 
-        // Si l'utilisateur n'existe pas, on throw UnknownUser
-        throw new UnknownUser("User inconnu");
+        throw new UnknownUser("Utilisateur inconnu");
     }
 
-    public function createUser(string $user, string $password): User {
-        $query = "INSERT INTO utilisateur (username, mdp) VALUES (:username, :password)";
+    public function createUser(string $email, string $nom, string $prenom, string $password): User {
+        $username = strtolower($prenom . $nom);
+        $creationDate = date('d/m/y');
+
+        $query = "INSERT INTO utilisateur (username, nom, prenom, mdp, email, date_creation) VALUES (:username, :nom, :prenom, :password, :email, SYSDATE)";
         $stmt = $this->pdo->prepare($query);
 
         try {
             $stmt->execute([
-                "username" => $user,
-                "password" => $password
+                'username' => $username,
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'password' => $password,
+                'email' => $email
             ]);
         } catch (PDOException $e) {
             throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
         }
 
-        return new User($user);
+        return new User($nom, $prenom, $creationDate);
     }
 
     public function getUserProfile(string $username): ?array {
