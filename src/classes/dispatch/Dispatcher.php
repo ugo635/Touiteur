@@ -33,8 +33,9 @@ class Dispatcher {
             default => new DefaultAction(),
         };
 
+        $resAct = $act(); // Appel __invoke() de Action
         $this->renderPage($act->prefix());
-        $this->renderPage($act()); // Appel __invoke() de Action
+        $this->renderPage($resAct); // Affiche plus tard pr que les changement de session soit déjà actif sur la session
         $this->renderPage($act->suffixe());
 
     }

@@ -7,7 +7,7 @@ class Logout extends Action {
     public function get(): string {
         return "<form method='POST' action='?action=logout' class='flex justify-center mt-10'>
                     <button type='submit' class='cursor-pointer'>
-                        Se déconnecterrrr
+                        Se déconnecter
                     </button>
                 </form>";
     }

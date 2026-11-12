@@ -148,13 +148,13 @@ class TouiteurRepository {
         return $touites;
     }
 
-    public function checkUser(string $email, string $password): User {
+    public function checkUser(string $username, string $password): User {
         $query = "SELECT username,nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
-                FROM utilisateur WHERE email = :email AND mdp = :password";
+                FROM utilisateur WHERE username = :username AND mdp = :password";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
-            'email' => $email,
+            'username' => $username,
             'password' => $password
         ]);
 
@@ -165,11 +165,11 @@ class TouiteurRepository {
             return new User($row['USERNAME'],$row['NOM'], $row["PRENOM"], $date);
         }
 
-        $query = "SELECT email FROM utilisateur WHERE email = :email";
+        $query = "SELECT username FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
 
         $stmt->execute([
-            'email' => $email
+            'username' => $username
         ]);
 
         if ($stmt->fetch(PDO::FETCH_ASSOC)) {
