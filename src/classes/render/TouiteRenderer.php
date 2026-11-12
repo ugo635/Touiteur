@@ -33,8 +33,9 @@ class TouiteRenderer implements Renderer {
             </div>
         HTML;
 
+        $hidden = $selector == 1 ? "hidden" : "";
         $boutons = <<<HTML
-            <div class="flex flex-row items-center score hidden">
+            <div class="flex flex-row items-center score {$hidden}">
                 <div class="flex flex-row items-center">
                     <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', 1)">
                         <svg class="w-full h-full" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +60,7 @@ class TouiteRenderer implements Renderer {
         return <<<HTML
             <article class="flex gap-3 border border-gray-300 rounded-md w-100 p-4" id="post-{$id}" 
             user="{$username}">
-                <div class="w-10 h-10 rounded-full bg-gray-200"></div> 
+                <div class="w-10 h-10 min-w-10 rounded-full bg-gray-200"></div> 
         
                 <div>
                     <div>

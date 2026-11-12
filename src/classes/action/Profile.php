@@ -64,7 +64,7 @@ class Profile extends Action {
             $touites= TouiteurRepository::getInstance()->findTouitesByUser($user);
         } catch (\Exception $e) {
            //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
-            echo $e->getMessage();
+            //echo $e->getMessage();
         }
 
         //si vide on dis qu'il n'y en a pas
