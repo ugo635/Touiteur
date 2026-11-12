@@ -12,6 +12,7 @@ class Like extends ApiAction {
             return "Non connecte";
         }
 
+
         $data = $this->getData();
 
         $post = $data["post"] ?? null;

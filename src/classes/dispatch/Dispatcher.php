@@ -2,15 +2,15 @@
 
 namespace iutnc\touiteur\dispatch;
 
-use iutnc\touiteur\action\Logout;
+use iutnc\touiteur\action\AddTouite;
 use iutnc\touiteur\action\api\Follow;
 use iutnc\touiteur\action\api\Like;
 use iutnc\touiteur\action\DefaultAction;
-use iutnc\touiteur\action\AddTouite;
-use iutnc\touiteur\action\Login;
-use iutnc\touiteur\action\Profile;
-use iutnc\touiteur\action\Hashtag;
 use iutnc\touiteur\action\FollowList;
+use iutnc\touiteur\action\Hashtag;
+use iutnc\touiteur\action\Login;
+use iutnc\touiteur\action\Logout;
+use iutnc\touiteur\action\Profile;
 
 class Dispatcher {
     private ?string $action = null;

@@ -58,13 +58,13 @@ class TouiteRenderer implements Renderer {
         $boutons = <<<HTML
             <div class="flex flex-row items-center score {$hidden}">
                 <div class="flex flex-row items-center">
-                    <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', 1)">
+                    <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this,'{$id}', '{$username}', 1)">
                         <svg class="w-full h-full" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                             <path class="hover:fill-purple-500" fill="#FF00FF60" d="M34,9c-4.2,0-7.9,2.1-10,5.4C21.9,11.1,18.2,9,14,9C7.4,9,2,14.4,2,21c0,11.9,22,24,22,24s22-12,22-24 C46,14.4,40.6,9,34,9z"/>
                         </svg>
                     </button>
                     <span class="score-value">{$score}</span>
-                    <button class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like('{$id}', '{$username}', -1)">
+                    <button class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this,'{$id}', '{$username}', -1)">
                         <svg class="w-full h-full" viewBox="180 90 320 310" xmlns="http://www.w3.org/2000/svg">
                             <g class="group-hover:fill-purple-500" fill="#E24B4A60" stroke="#A32D2D60" stroke-width="3" stroke-linejoin="round">
                                 <path transform="rotate(-8 340 380)" d="M340 175C340 140 310 110 270 110C225 110 200 145 200 190C200 270 290 330 340 380L332 350L352 320L322 285L350 245L320 215Z"/>
@@ -110,15 +110,15 @@ class TouiteRenderer implements Renderer {
                     score.classList.remove("hidden")
                 }
             
-                async function like(post, user, change = 1) {
+                async function like(btn,post, user, change = 1) {
                     const res = await fetch("?action=like", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            post: post.replace("post-", ""),
-                            user: user,
+                            post: post,
+                            username: user,
                             change: change
                         })
                     });
@@ -134,7 +134,7 @@ class TouiteRenderer implements Renderer {
             
                     const result = (await res.text()).trim();
             
-                    const article = document.querySelector("#post-" + post);
+                    const article = btn.closest("article");
                     const likeBtn = article.querySelector(".like");
                     const dislikeBtn = article.querySelector(".dislike");
                     const score = article.querySelector(".score-value");
