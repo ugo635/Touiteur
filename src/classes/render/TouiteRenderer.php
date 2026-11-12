@@ -127,6 +127,10 @@ class TouiteRenderer implements Renderer {
                         console.error("Erreur lors du vote");
                         return;
                     }
+                    if(res.status===401){
+                        alert("tu dois etre connecté pour liker")
+                        return;
+                    }
             
                     const result = (await res.text()).trim();
             
