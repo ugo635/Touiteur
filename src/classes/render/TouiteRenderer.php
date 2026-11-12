@@ -12,7 +12,7 @@ class TouiteRenderer implements Renderer {
 
     public function render(int $selector = 1): string {
         $message = $message = preg_replace(
-            '/(?<!\w)#(\w+)/u',
+            '/#(\w+)/',
             '<a href="?action=voir-tag&tag=$1" class="text-blue-600 hover:underline">#$1</a>',
             $this->touite->message
         );
@@ -63,7 +63,7 @@ class TouiteRenderer implements Renderer {
         
                 <div>
                     <div>
-                        <span class="font-bold">{$username}</span>
+                        <a href="?action=profile&username={$username}" class="font-bold hover:underline" >{$username}</a>
                         <span class="text-gray-500">{$date}</span>
                     </div>
         
