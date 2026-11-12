@@ -15,17 +15,18 @@ class Touite {
     private int $compteurLike = 0;
     private ?User $user ;
 
-    public function __construct(string $m, ?User $u = null) {
+    public function __construct(string $m, ?User $u = null, ?string $date = null) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
-        } else {
-            $this->user = $u;
-            $this->message = $m;
-            $this->date = getDate();
-            $this->id = uniqid();
-            $this->compteurLike = 0;
         }
 
+        $this->user = $u;
+        $this->message = $m;
+        // Date de la BDD si fournie, sinon maintenant (nouveau touite)
+        $timestamp = $date !== null ? strtotime($date) : false;
+        $this->date = getdate($timestamp !== false ? $timestamp : time());
+        $this->id = uniqid();
+        $this->compteurLike = 0;
     }
 
     public function __get(string $attr): mixed
