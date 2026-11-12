@@ -86,7 +86,7 @@ class Login extends Action {
     /**
      * Récup une valeur de $_POST avec tout retirer pr éviter les injection XSS
      */
-    private static function filtre(string $key): string {
+    public static function filtre(string $key): string {
         return htmlspecialchars($_POST[$key] ?? "", ENT_QUOTES, 'UTF-8');
     }
 

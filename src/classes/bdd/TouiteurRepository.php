@@ -166,34 +166,17 @@ class TouiteurRepository {
     }
 
     public function checkUser(string $username, string $password): User {
-        $query = "SELECT username,nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
-                FROM utilisateur WHERE username = :username AND mdp = :password";
+        $query = "SELECT username, nom, prenom, mdp, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
+                  FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
-
-        $stmt->execute([
-            'username' => $username,
-            'password' => $password
-        ]);
-
+        $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($row) {
-            $date = $row['DATE_CREATION'];
-            return new User($row['USERNAME'],$row['NOM'], $row["PRENOM"], $date);
+        if (!$row || !password_verify($password, $row['MDP'])) {
+            throw new InvalidPassword("Identifiants invalides");
         }
 
-        $query = "SELECT username FROM utilisateur WHERE username = :username";
-        $stmt = $this->pdo->prepare($query);
-
-        $stmt->execute([
-            'username' => $username
-        ]);
-
-        if ($stmt->fetch(PDO::FETCH_ASSOC)) {
-            throw new InvalidPassword("MDP pas valide");
-        }
-
-        throw new UnknownUser("Utilisateur inconnu");
+        return new User($row['USERNAME'], $row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
     }
 
     public function createUser(string $username,string $email, string $nom, string $prenom, string $password): User {
@@ -207,7 +190,7 @@ class TouiteurRepository {
                 'username' => $username,
                 'nom' => $nom,
                 'prenom' => $prenom,
-                'password' => $password,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
                 'email' => $email
             ]);
         } catch (PDOException $e) {

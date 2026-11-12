@@ -6,16 +6,17 @@ use iutnc\touiteur\bdd\TouiteurRepository;
 
 class Like extends ApiAction {
     public function post(): string {
+        $user = $_SESSION["username"] ?? null;
+        if ($user === null) {
+            http_response_code(401);
+            return "Non connecte";
+        }
+
         $data = $this->getData();
 
         $post = $data["post"] ?? null;
         $change = $data["change"] ?? null;
-        $user = $data["username"] ?? null;
 
-        if(!$user){
-            http_response_code(401);
-            return "Non connecte";
-        }
         if (!$post || !in_array($change, [1, -1])) {
             http_response_code(400);
             return "Requete invalide";

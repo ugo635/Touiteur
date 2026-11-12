@@ -12,10 +12,10 @@ class TouiteRenderer implements Renderer {
     }
 
     public function render(int $selector = 1): string {
-        $message = $message = preg_replace(
-            '/(?<!\w)#(\w+)/u',
+        $message = preg_replace(
+            '/(?<![\w&])#(\w+)/u',
             '<a href="?action=voir-tag&tag=$1" class="text-blue-600 hover:underline">#$1</a>',
-            $this->touite->message
+            htmlspecialchars($this->touite->message, ENT_QUOTES, 'UTF-8')
         );
 
         $date = $this->touite->getDate();
