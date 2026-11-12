@@ -57,13 +57,12 @@ class TouiteurRepository {
         $this->pdo->beginTransaction();
 
         try {
+            $username = $touite->user->formattedUsername;
+
             $stmtUser = $this->pdo->prepare(
                 "SELECT username FROM utilisateur WHERE username = :username"
             );
-
-            $stmtUser->execute([
-                'username' => $touite->user->formattedUsername
-            ]);
+            $stmtUser->execute(['username' => $username]);
 
             if (!$stmtUser->fetch()) {
                 throw new UnknownUser("Utilisateur inconnu");
@@ -72,11 +71,18 @@ class TouiteurRepository {
             $stmtTouite = $this->pdo->prepare(
                 "INSERT INTO touite (username, message) VALUES (:username, :message)"
             );
-
             $stmtTouite->execute([
-                'username' => $touite->user->formattedUsername,
+                'username' => $username,
                 'message' => $touite->message
             ]);
+
+            // Récup l'id du touite
+            $stmtId = $this->pdo->prepare(
+                "SELECT MAX(id_touite) FROM touite WHERE username = :username"
+            );
+
+            $stmtId->execute(['username' => $username]);
+            $touite->setId((string) $stmtId->fetchColumn());
 
             $this->pdo->commit();
 
@@ -109,12 +115,13 @@ class TouiteurRepository {
      */
     public function findTouitesByUser(string $username): array {
         $query = "
-            SELECT message, utilisateur.username, nom, prenom,
-                   TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation, TO_CHAR(date_touite, 'DD/MM/YY') as date_touite
+            SELECT touite.id_touite, message, utilisateur.username, nom, prenom,
+                   TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation,
+                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite
             FROM touite
             JOIN utilisateur ON touite.username = utilisateur.username
             WHERE touite.username = :username
-            ORDER BY date_touite DESC
+            ORDER BY touite.date_touite DESC
         ";
 
         $stmt = $this->pdo->prepare($query);
@@ -122,8 +129,13 @@ class TouiteurRepository {
 
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['USERNAME'],$row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
-            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE']);
+            $user = new User($row['USERNAME'], $row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
+            $touites[] = new Touite(
+                $row['MESSAGE'],
+                $user,
+                $row['DATE_TOUITE'],
+                (string) $row['ID_TOUITE']
+            );
         }
 
         return $touites;
@@ -131,18 +143,23 @@ class TouiteurRepository {
 
     public function findAllTouites(): array {
         $query = "
-            SELECT touite.*
+            SELECT id_touite, username, message,
+                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite
             FROM touite
-            ORDER BY date_touite DESC
+            ORDER BY touite.date_touite DESC
         ";
 
         $stmt = $this->pdo->query($query);
 
         $touites = [];
-
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite($row['MESSAGE'], $user, $row['date_touite']);
+            $touites[] = new Touite(
+                $row['MESSAGE'],
+                $user,
+                $row['DATE_TOUITE'],
+                (string) $row['ID_TOUITE']
+            );
         }
 
         return $touites;
@@ -256,12 +273,13 @@ class TouiteurRepository {
 
     public function findTouitesByTag(string $tag): array {
         $query = "
-            SELECT t.*
+            SELECT t.id_touite, t.username, t.message,
+                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite
             FROM touite t
             JOIN touite_tag tt ON t.id_touite = tt.id_touite
             JOIN tag ON tt.id_tag = tag.id_tag
             WHERE tag.libelle = :tag
-            ORDER BY date_touite DESC
+            ORDER BY t.date_touite DESC
         ";
 
         $stmt = $this->pdo->prepare($query);
@@ -271,7 +289,12 @@ class TouiteurRepository {
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite($row['MESSAGE'], $user, $row['date_touite']);
+            $touites[] = new Touite(
+                $row['MESSAGE'],
+                $user,
+                $row['DATE_TOUITE'],
+                (string) $row['ID_TOUITE']
+            );
         }
 
         return $touites;
@@ -283,39 +306,31 @@ class TouiteurRepository {
      * @return void
      */
     public function saveTags(Touite $touite): void {
-        foreach ($touite->getListeTag() as $tag){
-            $this->pdo->beginTransaction();
-            try{
-                $stmtCheck = $this->pdo->prepare("SELECT count(id_tag) FROM tag WHERE libelle = :tag");
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmtCheck = $this->pdo->prepare("SELECT COUNT(id_tag) FROM tag WHERE libelle = :tag");
+            $stmtInsert = $this->pdo->prepare("INSERT INTO tag (libelle) VALUES (:tag)");
+            $stmtIdTag = $this->pdo->prepare("SELECT id_tag FROM tag WHERE libelle = :tag");
+            $stmtLink = $this->pdo->prepare("INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)");
+
+            foreach ($touite->getListeTag() as $tag) {
                 $stmtCheck->execute(['tag' => $tag]);
-                if($stmtCheck->fetchColumn() == 0){
-                    //insert dans tag
-                    $stmtInsert = $this->pdo->prepare("INSERT INTO tag (libelle) VALUES (:tag)");
+                if ($stmtCheck->fetchColumn() == 0) {
                     $stmtInsert->execute(['tag' => $tag]);
                 }
-                $qIdTag = "SELECT id_tag FROM tag WHERE libelle = :tag";
-                $qIdTouite = "SELECT id_touite FROM touite WHERE message = :msgtouite ORDER BY id_touite DESC"; //inverse l'ordre pour avoir le plus recent si mm texte
-                $qInsertTabTouite = "INSERT INTO touite_tag (id_touite, id_tag) VALUES (?, ?)";
 
-                //get id_tag
-                $stmt2 = $this->pdo->prepare($qIdTag);
-                $stmt2->execute(['tag' => $tag]);
+                $stmtIdTag->execute(['tag' => $tag]);
+                $idTag = $stmtIdTag->fetchColumn();
 
-                //get id_touite
-                $stmt3 = $this->pdo->prepare($qIdTouite);
-                $stmt3->execute(['msgtouite' => $touite->msg]);
-
-                //insert dans touite_tag
-                $stmt4 = $this->pdo->prepare($qInsertTabTouite);
-                $stmt4->execute([$stmt3->fetchColumn(), $stmt2->fetchColumn()]);
-
-                $this->pdo->commit();
-            }catch (Exception $e) {
-                $this->pdo->rollBack();
-                throw $e;
+                $stmtLink->execute([$touite->id, $idTag]);
             }
 
-       }
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 
 
