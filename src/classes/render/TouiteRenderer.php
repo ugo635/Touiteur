@@ -3,6 +3,7 @@
 namespace iutnc\touiteur\render;
 
 use iutnc\touiteur\touite\Touite;
+use iutnc\touiteur\bdd\TouiteurRepository;
 
 class TouiteRenderer implements Renderer {
     private Touite $touite;
@@ -23,17 +24,37 @@ class TouiteRenderer implements Renderer {
         $score = $this->touite->compteurLike;
 
         $msgHtml = ($selector == 1) ? <<<HTML
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col">
                 <p class="line-clamp-2 msg-content">{$message}</p>
                 <button class="text-blue-700 cursor-pointer afficher-plus" onclick="afficherPlus('post-{$id}')">Afficher Plus</button>
             </div>
         HTML : <<<HTML
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col">
                 <p class="msg-content">{$message}</p>
             </div>
         HTML;
 
-        $hidden = $selector == 1 ? "hidden" : "";
+        $moi = $_SESSION["username"] ?? "";
+
+        $estDejaSuivi = TouiteurRepository::getInstance()->isFollowing($moi, $username)
+            && $moi !== $username && $username !== "" && $moi !== "";
+
+        $unfollowBtn = <<<HTML
+            <button class="follow-btn rounded-full bg-red-700 p-1 cursor-pointer text-white" onclick="follow('{$id}', '{$username}', '{$moi}', false)">
+                Unfollow -
+            </button>
+        HTML;
+
+        $followBtn = <<<HTML
+            <button class="follow-btn rounded-full bg-blue-700 p-1 cursor-pointer text-white" onclick="follow('{$id}', '{$username}', '{$moi}', true)">
+                Follow +
+            </button>
+        HTML;
+
+        $boutonFollow = $estDejaSuivi ? $unfollowBtn : $followBtn;
+        if ($moi === $username || $moi === "") $boutonFollow = ""; // Pas de btn follow pr soit meme ou si on est pas connecté
+
+        $hidden = $selector == Renderer::COMPACT ? "hidden" : "";
         $boutons = <<<HTML
             <div class="flex flex-row items-center score {$hidden}">
                 <div class="flex flex-row items-center">
@@ -62,10 +83,15 @@ class TouiteRenderer implements Renderer {
             user="{$username}">
                 <div class="w-10 h-10 min-w-10 rounded-full bg-gray-200"></div> 
         
-                <div>
-                    <div>
-                        <span class="font-bold">{$username}</span>
-                        <span class="text-gray-500">{$date}</span>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold">{$username}</span>
+                            <span class="text-gray-500">{$date}</span>
+                        </div>
+                        <div id="followBtn-{$id}">
+                            {$boutonFollow}
+                        </div>
                     </div>
         
                     {$msgHtml}
@@ -124,6 +150,33 @@ class TouiteRenderer implements Renderer {
                         activeBtn.querySelector(change === 1 ? "path" : "g").classList.add("fill-purple-500");
                         score.textContent = parseInt(score.textContent) + change * 2;
                     }
+                }
+                
+                async function follow(post, persQuiVaEtreSuivi, persQuiVaSuivre, ajouterOuPas) {
+                    const res = await fetch("?action=follow", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            suivi: persQuiVaEtreSuivi,
+                            suiveur: persQuiVaSuivre,
+                            ajout: ajouterOuPas
+                        })
+                    });
+                
+                    if (!res.ok) { // Ne devrait pas arriver
+                        console.error("Erreur lors du follow");
+                        return;
+                    }
+                
+                    // Tout est bon donc on retrouve le btn du post et on le change en son contraire
+                    // (follow -> unfollow) ou (unfollow -> follow)
+                    const btn = document.querySelector("#post-" + post + " .follow-btn");
+                    btn.textContent = ajouterOuPas ? "Unfollow -" : "Follow +";
+                    btn.classList.toggle("bg-red-700", ajouterOuPas);
+                    btn.classList.toggle("bg-blue-700", !ajouterOuPas);
+                    btn.onclick = () => follow(post, persQuiVaEtreSuivi, persQuiVaSuivre, !ajouterOuPas);
                 }
             </script>
         HTML;
