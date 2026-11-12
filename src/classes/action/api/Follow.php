@@ -11,9 +11,14 @@ class Follow extends ApiAction {
     }
 
     public function post(): string {
+        $suiveur = $_SESSION["username"] ?? null;
+        if ($suiveur === null) {
+            http_response_code(401);
+            return "Non connecte";
+        }
+
         $data = $this->getData();
         $suivi = strtolower(str_replace(" ", "", $data["suivi"] ?? null));
-        $suiveur = strtolower(str_replace(" ", "", $data["suiveur"] ?? null));
         $ajout = $data["ajout"] ?? null;
 
         $repo = TouiteurRepository::getInstance();
