@@ -15,7 +15,7 @@ class Touite {
     private int $compteurLike = 0;
     private ?User $user ;
 
-    public function __construct(string $m, ?User $u = null, ?string $date = null, ?string $id = null) {
+    public function __construct(string $m, ?User $u = null, ?string $date = null, ?string $id = null,?int $like = 0) {
         if (strlen($m) > 235) {
             throw new MessageTooBig("Message trop long");
         }
@@ -25,7 +25,7 @@ class Touite {
         $timestamp = $date !== null ? strtotime($date) : false;
         $this->date = getdate($timestamp !== false ? $timestamp : time()); // Date de la BDD si fournie, sinon mtn (nouveau touite)
         $this->id = $id ?? uniqid(); // id de la BDD si fourni, sinon id temporaire (touite pas encore sauvegardé)
-        $this->compteurLike = 0;
+        $this->compteurLike =$like;
     }
 
     public function setId(string $id): void {
