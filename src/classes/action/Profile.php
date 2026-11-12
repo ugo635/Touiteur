@@ -61,7 +61,11 @@ class Profile extends Action {
 
         //recuperation touites de l'utilisateur
         try{
-            $touites= TouiteurRepository::getInstance()->findTouitesByUser($user);
+            if ($tab === 'likes') {
+                $touites = TouiteurRepository::getInstance()->findTouiteByLike($user);
+            } else {
+                $touites = TouiteurRepository::getInstance()->findTouitesByUser($user);
+            }
         } catch (\Exception $e) {
            //si rien on passe ensuite il sera dis qu'il n'y a pas de touites
             //echo $e->getMessage();

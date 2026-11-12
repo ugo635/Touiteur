@@ -257,7 +257,34 @@ class TouiteurRepository {
             return "Added";
         }
     }
+    public function findTouiteByLike(string $username): array {
+        $query = "
+            SELECT t.id_touite, t.username, t.message,
+                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+                   NVL((select SUM(likes.vote) from likes  WHERE t.id_touite = likes.id_touite), 0) AS compteur_like
+            FROM touite t
+            JOIN likes ON t.id_touite = likes.id_touite
+            WHERE likes.username = :username AND likes.vote = 1
+            ORDER BY t.date_touite DESC
+        ";
 
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['username' => $username]);
+
+        $touites = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $user = new User($row['USERNAME']);
+            $touites[] = new Touite(
+                $row['MESSAGE'],
+                $user,
+                $row['DATE_TOUITE'],
+                (string) $row['ID_TOUITE'],
+                (int) $row['COMPTEUR_LIKE']
+            );
+        }
+
+        return $touites;
+    }
     public function findTouitesByTag(string $tag): array {
         $query = "
             SELECT t.id_touite, t.username, t.message,
