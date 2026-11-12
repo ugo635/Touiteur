@@ -17,7 +17,7 @@ class DefaultAction extends Action {
             //si vide on dis qu'il n'y en a pas
             $touitesHtml = '';
             if (empty($touites)) {
-                $touitesHtml = '<p class="text-gray-500 text-center py-8">Aucun touite pour cet hashtag.</p>';
+                $touitesHtml = '<p class="text-gray-500 text-center py-8">Aucun touite.</p>';
             } else { //sinon on affiche les touites avec le renderer
                 foreach ($touites as $touite) {
                     $touitesHtml .= RendererFactory::getRenderer($touite)->render();
