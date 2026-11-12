@@ -86,7 +86,7 @@ class TouiteRenderer implements Renderer {
                 <div class="flex-1">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="font-bold">{$username}</span>
+                            <a href="?action=profile&username={$username}" class="font-bold hover:underline" >{$username}</a>
                             <span class="text-gray-500">{$date}</span>
                         </div>
                         <div id="followBtn-{$id}">
