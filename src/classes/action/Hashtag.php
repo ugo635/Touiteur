@@ -5,17 +5,19 @@ namespace iutnc\touiteur\action;
 use iutnc\touiteur\bdd\TouiteurRepository;
 use iutnc\touiteur\render\RendererFactory;
 
-class Hashtag extends Action
-{
+class Hashtag extends Action {
     public function get(): string {
-        $tag = $_GET['tag'] ?? null;
+        $tag = $_GET['tag'] ?? "";
         if ($tag === null|| $tag === "") {
             return <<<HTML
-        <div class="p-8 text-center">
-            <h1 class="text-2xl font-bold mb-6">tag non existant</h1>
-        </div>
-        HTML;
+                <div class="p-8 text-center">
+                    <h1 class="text-2xl font-bold mb-6">tag non existant</h1>
+                </div>
+            HTML;
         }
+
+        $tagHtml = htmlspecialchars($tag, ENT_QUOTES, 'UTF-8');
+        $tagUrl = urlencode($tag);
 
         //TODO: remplacer val par defaut
         $nbFollowers = 0;
@@ -42,10 +44,10 @@ class Hashtag extends Action
              
              <!-- pseudo, nb followers, nb follows, date creation -->
              <div class="flex justify-between mb-4">
-                <h1 class="text-xl font-bold">#$tag</h1>
+                <h1 class="text-xl font-bold">#$tagHtml</h1>
                 <div class="flex items-center space-x-4">
                     <!--Bouton followers-->
-                    <a href="?action=followers&tag=$tag" class="text-black-500 hover:underline">
+                    <a href="?action=followers&tag=$tagUrl" class="text-black-500 hover:underline">
                     <span class="font-bold">$nbFollowers</span>
                     <span class="text-gray-500 text-sm">abonnés</span>      
                     </a>
