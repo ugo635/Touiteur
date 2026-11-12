@@ -143,6 +143,31 @@ class TouiteurRepository {
         return $touites;
     }
 
+    public function deleteTouite(string $idTouite, string $username): bool {
+        // Optionnel : vérifier d'abord si le touite appartient bien à l'utilisateur
+        $stmtCheck = $this->pdo->prepare("SELECT username FROM touite WHERE id_touite = :id");
+        $stmtCheck->execute(['id' => $idTouite]);
+        $row = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row || $row['USERNAME'] !== $username) {
+            return false; // Soit le touite n'existe pas, soit l'utilisateur n'en est pas l'auteur
+        }
+
+        // Supprimer d'abord les liens avec les tags (si vous avez une table de liaison touite_tag)
+        $stmtTag = $this->pdo->prepare("DELETE FROM touite_tag WHERE id_touite = :id");
+        $stmtTag->execute(['id' => $idTouite]);
+
+        // Supprimer les likes associés au touite
+        $stmtLikes = $this->pdo->prepare("DELETE FROM likes WHERE id_touite = :id");
+        $stmtLikes->execute(['id' => $idTouite]);
+
+        // Enfin, supprimer le touite
+        $stmt = $this->pdo->prepare("DELETE FROM touite WHERE id_touite = :id");
+        $stmt->execute(['id' => $idTouite]);
+
+        return $stmt->rowCount() > 0;
+    }
+
     public function findAllTouites(): array {
         $query = "
             SELECT id_touite, username, message,

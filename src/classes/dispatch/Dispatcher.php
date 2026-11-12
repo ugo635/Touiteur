@@ -12,6 +12,7 @@ use iutnc\touiteur\action\Login;
 use iutnc\touiteur\action\Logout;
 use iutnc\touiteur\action\Profile;
 use iutnc\touiteur\action\TagFollowList;
+use iutnc\touiteur\action\api\DeleteTouite;
 
 class Dispatcher {
     private ?string $action = null;
@@ -31,6 +32,7 @@ class Dispatcher {
             'followers' => new FollowList('followers'),
             'follows' => new FollowList('follows'),
             'follow' => new Follow(),
+            'delete-touite' => new DeleteTouite(),
             'tag-followers' => new FollowList('tag-followers'),
             'tag-follows' => new TagFollowList(),
             default => new DefaultAction(),
