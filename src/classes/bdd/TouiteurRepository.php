@@ -18,7 +18,7 @@ class TouiteurRepository {
 
     private function __construct(array $conf) {
         $port = $conf['port'] ?? 1521;
-        $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})))";
+        $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})));charset=AL32UTF8";
 
         $this->pdo = new PDO(
             $dsn,

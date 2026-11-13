@@ -25,6 +25,7 @@ class AddTouite extends Action {
         }
         //permet de retirer les espaces au debut et a la fin
         $message = trim($_POST['message'] ?? '');
+        $message = str_replace("\r\n", "\n", $message);
         //anti post vide
         if ($message === '') {
             return $this->error("Le message ne peut pas être vide.") . $this->form();

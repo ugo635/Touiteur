@@ -22,6 +22,7 @@ abstract class Action {
         <html lang="fr">
             <head>
                 <title>Touiteur</title>
+                <meta charset="UTF-8">
                 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
             </head>
             <body>

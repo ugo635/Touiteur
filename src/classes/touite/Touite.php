@@ -16,7 +16,7 @@ class Touite {
     private ?User $user ;
 
     public function __construct(string $m, ?User $u = null, ?string $date = null, ?string $id = null,?int $like = 0) {
-        if (strlen($m) > 235) {
+        if (preg_match_all('/./su', $m) > 235) {
             throw new MessageTooBig("Message trop long");
         }
 

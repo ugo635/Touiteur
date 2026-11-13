@@ -13,7 +13,7 @@ class TouiteRenderer implements Renderer {
 
     public function render(int $selector = 1): string {
         $message = preg_replace(
-            '/#(\w+)/',
+            '/(?<!&)#(\w+)/',
             '<a href="?action=voir-tag&tag=$1" class="text-blue-600 hover:underline">#$1</a>',
             htmlspecialchars($this->touite->message, ENT_QUOTES, 'UTF-8')
         );
@@ -25,12 +25,12 @@ class TouiteRenderer implements Renderer {
 
         $msgHtml = ($selector == 1) ? <<<HTML
             <div class="flex flex-col">
-                <p class="line-clamp-2 msg-content">{$message}</p>
+                <p class="line-clamp-2 msg-content whitespace-pre-line">{$message}</p>
                 <button class="text-blue-700 cursor-pointer afficher-plus" onclick="afficherPlus('post-{$id}')">Afficher Plus</button>
             </div>
         HTML : <<<HTML
             <div class="flex flex-col">
-                <p class="msg-content">{$message}</p>
+                <p class="msg-content whitespace-pre-line">{$message}</p>
             </div>
         HTML;
 
