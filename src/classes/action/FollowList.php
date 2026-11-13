@@ -44,7 +44,7 @@ class FollowList extends Action {
 
             $title = $this->type === "followers" ? "Abonnés" : "Abonnements";
             $safeTagOuUser = htmlspecialchars($username, ENT_QUOTES, 'UTF-8');
-            $urlUserOuTag = "?action=profile$username=".urlencode($username);
+            $urlUserOuTag = "?action=profile&username=".urlencode($username);
             $action = "?action={$this->type}&user=" . urlencode($username);
         }
         $current = $this->currentUsername();
