@@ -590,4 +590,22 @@ class TouiteurRepository {
 
         return $tendances;
     }
+
+    public function scoreMoyen(string $user): float {
+        $query = "
+            SELECT TO_CHAR(
+                NVL(AVG(vote), 0),
+                'FM999999990D999999', -- fix oracle formatting (par ex renvoie ,6 au lieu de 0.6  qui casse dans la conversion en float
+                'NLS_NUMERIC_CHARACTERS = ''.,'''
+            )
+            FROM likes
+            JOIN touite ON touite.id_touite = likes.id_touite
+            WHERE touite.username = :username
+        ";
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['username' => $user]);
+
+        return (float) $stmt->fetchColumn();
+    }
 }

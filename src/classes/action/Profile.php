@@ -33,6 +33,7 @@ class Profile extends Action {
         $nbFollowers = $repo->countFollowers($user);
         $nbFollows = $repo->countFollows($user);
         $nbTagsFollows = $repo->countTagFollows($user);
+        $scoreMoy = number_format($repo->scoreMoyen($user), 1);
         $dateCreation = $profil->creationDate;
 
         //regarde si touites ou likes, touites par defaut
@@ -105,6 +106,11 @@ class Profile extends Action {
                         <span class="font-bold">$nbTagsFollows</span>
                         <span class="text-gray-500 text-sm">tags suivis</span>
                     </a>
+                    
+                    <div>
+                        <span class="font-bold">$scoreMoy</span>
+                        <span class="text-gray-500 text-sm">score moyen</span>
+                    </div>
                 </div>
              </div>
                           
