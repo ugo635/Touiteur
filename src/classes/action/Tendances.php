@@ -14,18 +14,18 @@ class Tendances extends Action {
         }
 
         //si vide on dis qu'il n'y en a pas
-        $tagsHtml = "<div class='flex flex-col'>";
+        $tagsHtml = "<div class='flex flex-col w-80'>";
         if (empty($tags)) {
-            $tagsHtml = '<p class="text-gray-500 text-center py-8">Aucun touite.</p>';
+            $tagsHtml = '<p class="text-gray-500 text-center py-8">Aucun tags.</p>';
         } else { //sinon on affiche les touites avec le renderer
             foreach ($tags as $tag) {
                 $nomTag = $tag["tag"];
                 $nbTag = $tag["nb"];
                 $tagsHtml .= <<<HTML
-                        <div>
-                            <span>#$nomTag</span>
-                            <span>$nbTag</span>
-                        </div>
+                    <div class="flex justify-between gap-4 p-2 border rounded-sm m-2">
+                        <a href="?action=voir-tag&tag=$nomTag" class="text-blue-600">#$nomTag</a>
+                        <span>$nbTag followers</span>
+                    </div>
                 HTML;
 
             }
