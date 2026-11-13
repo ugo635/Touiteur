@@ -8,7 +8,6 @@ use iutnc\touiteur\render\RendererFactory;
 
 class DefaultAction extends Action {
     public function get(): string {
-
                 $touites = [];
                 $connecte = isset($_SESSION['user']);
 
@@ -40,11 +39,21 @@ class DefaultAction extends Action {
                 }
 
                 return <<<HTML
-             <!--listes touites-->
-             <div class="flex items-center flex-col gap-2 py-8">
-                $touitesHtml
-             </div>
-        HTML;
+                    <div class="flex justify-center mt-2">
+                        <input id="tagSearch" placeholder="Rechercher un tag" class="w-40 h-5 border border-gray-500 rounded-sm p-3" >
+                    </div>
+                     <!--listes touites-->
+                     <div class="flex items-center flex-col gap-2 py-4">
+                        $touitesHtml
+                     </div>
+                    <script>
+                        document.querySelector("#tagSearch").addEventListener("keypress", function(event) {
+                            if (event.key === "Enter") {
+                                window.location.href = ("?action=voir-tag&tag=" + document.querySelector("#tagSearch").value)
+                            }
+                        });
+                    </script>
+                HTML;
             }
 
             public function post(): string
