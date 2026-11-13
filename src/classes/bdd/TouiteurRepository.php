@@ -314,7 +314,7 @@ class TouiteurRepository {
         $query = "
             SELECT t.id_touite, t.username, t.message,
                    TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
-                   NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
+                   NVL((select sum(likes.vote)from likes where t.id_touite = likes.id_touite),0) as compteur_like
             FROM touite t
             JOIN touite_tag tt ON t.id_touite = tt.id_touite
             JOIN tag ON tt.id_tag = tag.id_tag
