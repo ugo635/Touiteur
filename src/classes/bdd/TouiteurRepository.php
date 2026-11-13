@@ -19,7 +19,7 @@ class TouiteurRepository {
     private function __construct(array $conf)
     {
         $port = $conf['port'] ?? 1521;
-        $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})))";
+        $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})));charset=AL32UTF8";
 
         $this->pdo = new PDO($dsn, $conf['username'], $conf['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT => true]);
     }
@@ -618,5 +618,27 @@ class TouiteurRepository {
         }
 
         return $touites;
+    }
+
+    public function findTendances(): array {
+        $query = "
+            SELECT tag.libelle, COUNT(touite_tag.id_touite) AS nb_mentions
+            FROM tag
+            JOIN touite_tag ON touite_tag.id_tag = tag.id_tag
+            GROUP BY tag.id_tag, tag.libelle
+            ORDER BY nb_mentions DESC, tag.libelle
+        ";
+
+        $stmt = $this->pdo->query($query);
+
+        $tendances = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $tendances[] = [
+                'tag' => $row['LIBELLE'],
+                'nb'  => (int) $row['NB_MENTIONS'],
+            ];
+        }
+
+        return $tendances;
     }
 }

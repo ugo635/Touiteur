@@ -14,7 +14,7 @@ abstract class Action {
     }
 
     public function prefix(): string {
-        $btn = "";
+        $btn = "hover:underline";
         $username = $_SESSION["username"] ?? "";
 
         $html = <<<HTML
@@ -22,6 +22,7 @@ abstract class Action {
         <html lang="fr">
             <head>
                 <title>Touiteur</title>
+                <meta charset="UTF-8">
                 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
             </head>
             <body>
@@ -29,6 +30,7 @@ abstract class Action {
                 <a href="?action=default" class="$btn">Home</a>
                 <a href="?action=profile&username=$username" class="$btn">Profil</a>
                 <a href="?action=add-touite" class="$btn">Poster</a>
+                <a href="?action=tendances" class="$btn">Tendances</a>
         HTML;
 
         if (!isset($_SESSION["username"])) {
