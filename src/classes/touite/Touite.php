@@ -53,7 +53,11 @@ class Touite {
     }
 
     public function getDate(): string {
-        return $this->date['mday'] . "/" . $this->date['mon'] . "/" . $this->date['year'];
+        return sprintf(
+            '%02d/%02d/%04d %02d:%02d',
+            $this->date['mday'], $this->date['mon'], $this->date['year'],
+            $this->date['hours'], $this->date['minutes']
+        );
     }
 
     public function addNote(string $userId, bool $isLike): void {

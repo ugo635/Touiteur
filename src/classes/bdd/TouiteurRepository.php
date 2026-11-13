@@ -117,7 +117,7 @@ class TouiteurRepository {
         $query = "
             SELECT touite.id_touite, message, utilisateur.username, nom, prenom,
                    TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation,
-                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
             FROM touite
             JOIN utilisateur ON touite.username = utilisateur.username
@@ -171,7 +171,7 @@ class TouiteurRepository {
     public function findAllTouites(): array {
         $query = "
             SELECT id_touite, username, message,
-                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
             FROM touite
             ORDER BY touite.date_touite DESC
@@ -285,7 +285,7 @@ class TouiteurRepository {
     public function findTouiteByLike(string $username): array {
         $query = "
             SELECT t.id_touite, t.username, t.message,
-                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select SUM(likes.vote) from likes  WHERE t.id_touite = likes.id_touite), 0) AS compteur_like
             FROM touite t
             JOIN likes ON t.id_touite = likes.id_touite
@@ -313,7 +313,7 @@ class TouiteurRepository {
     public function findTouitesByTag(string $tag): array {
         $query = "
             SELECT t.id_touite, t.username, t.message,
-                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select sum(likes.vote)from likes where t.id_touite = likes.id_touite),0) as compteur_like
             FROM touite t
             JOIN touite_tag tt ON t.id_touite = tt.id_touite
