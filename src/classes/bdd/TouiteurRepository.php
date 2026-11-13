@@ -553,65 +553,14 @@ class TouiteurRepository {
 
         ORDER BY t.date_touite DESC, t.id_touite DESC
     ";
-        //reste
-        $query2 = "
-        SELECT t.id_touite, t.username, t.message,
-               TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
-               NVL((
-                   SELECT SUM(l.vote)
-                   FROM likes l
-                   WHERE l.id_touite = t.id_touite
-               ), 0) AS compteur_like
-        FROM touite t
-
-        MINUS
-
-        SELECT t.id_touite, t.username, t.message,
-               TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
-               NVL((
-                   SELECT SUM(l.vote)
-                   FROM likes l
-                   WHERE l.id_touite = t.id_touite
-               ), 0) AS compteur_like
-        FROM touite t
-        WHERE t.id_touite IN (
-            SELECT id_touite
-            FROM touite
-            WHERE username IN (
-                SELECT suivi
-                FROM abonnement_utilisateur
-                WHERE abonne = :username1
-            )
-
-            UNION
-
-            SELECT tt.id_touite
-            FROM touite_tag tt
-            JOIN abonnement_tag ab
-                ON tt.id_tag = ab.id_tag
-            WHERE ab.username = :username2
-        )
-
-        ORDER BY 4 DESC, 1 DESC
-    ";
 
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(['username1' => $username, 'username2' => $username]);
-
-        $stmt2 = $this->pdo->prepare($query2);
-        $stmt2->execute(['username1' => $username, 'username2' => $username]);
 
         $touites = [];
 
         // Premier groupe
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $user = new User($row['USERNAME']);
-
-            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
-        }
-
-        // Deuxième groupe
-        while ($row = $stmt2->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
 
             $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
