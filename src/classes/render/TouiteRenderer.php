@@ -13,7 +13,7 @@ class TouiteRenderer implements Renderer {
 
     public function render(int $selector = 1): string {
         $message = preg_replace(
-            '/(?<![\w&])#(\w+)/u',
+            '/#(\w+)/',
             '<a href="?action=voir-tag&tag=$1" class="text-blue-600 hover:underline">#$1</a>',
             htmlspecialchars($this->touite->message, ENT_QUOTES, 'UTF-8')
         );
@@ -52,7 +52,18 @@ class TouiteRenderer implements Renderer {
         HTML;
 
         $boutonFollow = $estDejaSuivi ? $unfollowBtn : $followBtn;
-        if ($moi === $username || $moi === "") $boutonFollow = ""; // Pas de btn follow pr soit meme ou si on est pas connecté
+        if ($moi=== $username || $moi=== "") {
+            $boutonFollow = "";
+        }
+        //boutton Supprimer Touite
+        $deleteBtn = "";
+        if ($moi!== "" && $moi===$username) {
+            $deleteBtn = <<<HTML
+                <button class="delete-btn rounded-full bg-red-900 p-1 cursor-pointer text-white" onclick="deleteTouite('{$id}')">
+                    Supprimer Touite
+                </button>
+            HTML;
+        }
 
         $hidden = $selector == Renderer::COMPACT ? "hidden" : "";
         $boutons = <<<HTML
@@ -76,8 +87,6 @@ class TouiteRenderer implements Renderer {
             </div>
         HTML;
 
-
-        // Le div sous article est la photo de profile (vide pr le moment)
         return <<<HTML
             <article class="flex gap-3 border border-gray-300 rounded-md w-100 p-4" id="post-{$id}" 
             user="{$username}">
@@ -89,8 +98,9 @@ class TouiteRenderer implements Renderer {
                             <a href="?action=profile&username={$username}" class="font-bold hover:underline" >{$username}</a>
                             <span class="text-gray-500">{$date}</span>
                         </div>
-                        <div id="followBtn-{$id}">
+                        <div id="actionBtn-{$id}">
                             {$boutonFollow}
+                            {$deleteBtn}
                         </div>
                     </div>
         
@@ -124,11 +134,11 @@ class TouiteRenderer implements Renderer {
                     });
             
                     if (!res.ok) {
+                        if(res.status === 401){
+                            alert("tu dois etre connecté pour liker");
+                            return;
+                        }
                         console.error("Erreur lors du vote");
-                        return;
-                    }
-                    if(res.status===401){
-                        alert("tu dois etre connecté pour liker")
                         return;
                     }
             
@@ -181,6 +191,34 @@ class TouiteRenderer implements Renderer {
                     btn.classList.toggle("bg-red-700", ajouterOuPas);
                     btn.classList.toggle("bg-blue-700", !ajouterOuPas);
                     btn.onclick = () => follow(post, persQuiVaEtreSuivi, persQuiVaSuivre, !ajouterOuPas);
+                }
+
+                async function deleteTouite(idTouite) {
+                    try {
+                        const res = await fetch("?action=delete-touite", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                id_touite: idTouite
+                            })
+                        });
+                        if (!res.ok) {
+                            alert("Erreur lors de la suppression.");
+                            return;
+                        }
+                        const result = (await res.text()).trim();
+                        if (result === "Supprimer") {
+                            // On supprime directement l'HTML de la page
+                            const article = document.querySelector("#post-" + idTouite);
+                            if (article) {
+                                article.remove();
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Erreur réseau", error);
+                    }
                 }
             </script>
         HTML;

@@ -32,6 +32,7 @@ class Profile extends Action {
 
         $nbFollowers = $repo->countFollowers($user);
         $nbFollows = $repo->countFollows($user);
+        $nbTagsFollows = $repo->countTagFollows($user);
         $dateCreation = $profil->creationDate;
 
         //regarde si touites ou likes, touites par defaut
@@ -97,6 +98,12 @@ class Profile extends Action {
                     <a href="?action=follows&user=$user" class="text-black-500 hover:underline">
                         <span class="font-bold">$nbFollows</span>
                         <span class="text-gray-500 text-sm">abonnements</span>      
+                    </a>
+                    
+                            <!--Bouton tags suivis-->
+                    <a href="?action=tag-follows&user=$user" class="text-black-500 hover:underline">
+                        <span class="font-bold">$nbTagsFollows</span>
+                        <span class="text-gray-500 text-sm">tags suivis</span>
                     </a>
                 </div>
              </div>

@@ -73,6 +73,15 @@ CREATE TABLE abonnement_tag (
         FOREIGN KEY (id_tag) REFERENCES tag(id_tag)
 );
 
+CREATE TABLE likes (
+    username  VARCHAR2(100) NOT NULL,
+    id_touite NUMBER NOT NULL,
+    vote      NUMBER(3) NOT NULL,
+    CONSTRAINT pk_likes PRIMARY KEY (username, id_touite),
+    CONSTRAINT fk_likes_u FOREIGN KEY (username) REFERENCES utilisateur(username),
+    CONSTRAINT fk_likes_t FOREIGN KEY (id_touite) REFERENCES touite(id_touite)
+);
+
 -- 1. Mettre a jour le nombre de touites d un utilisateur
 CREATE OR REPLACE TRIGGER trg_touite_inc_nb
 AFTER INSERT ON touite

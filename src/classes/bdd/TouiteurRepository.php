@@ -117,7 +117,7 @@ class TouiteurRepository {
         $query = "
             SELECT touite.id_touite, message, utilisateur.username, nom, prenom,
                    TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation,
-                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
             FROM touite
             JOIN utilisateur ON touite.username = utilisateur.username
@@ -141,6 +141,31 @@ class TouiteurRepository {
         }
 
         return $touites;
+    }
+
+    public function deleteTouite(string $idTouite, string $username): bool {
+        // Optionnel : vérifier d'abord si le touite appartient bien à l'utilisateur
+        $stmtCheck = $this->pdo->prepare("SELECT username FROM touite WHERE id_touite = :id");
+        $stmtCheck->execute(['id' => $idTouite]);
+        $row = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row || $row['USERNAME'] !== $username) {
+            return false; // Soit le touite n'existe pas, soit l'utilisateur n'en est pas l'auteur
+        }
+
+        // Supprimer d'abord les liens avec les tags (si vous avez une table de liaison touite_tag)
+        $stmtTag = $this->pdo->prepare("DELETE FROM touite_tag WHERE id_touite = :id");
+        $stmtTag->execute(['id' => $idTouite]);
+
+        // Supprimer les likes associés au touite
+        $stmtLikes = $this->pdo->prepare("DELETE FROM likes WHERE id_touite = :id");
+        $stmtLikes->execute(['id' => $idTouite]);
+
+        // Enfin, supprimer le touite
+        $stmt = $this->pdo->prepare("DELETE FROM touite WHERE id_touite = :id");
+        $stmt->execute(['id' => $idTouite]);
+
+        return $stmt->rowCount() > 0;
     }
 
     public function findAllTouites(): array {
@@ -260,7 +285,7 @@ class TouiteurRepository {
     public function findTouiteByLike(string $username): array {
         $query = "
             SELECT t.id_touite, t.username, t.message,
-                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select SUM(likes.vote) from likes  WHERE t.id_touite = likes.id_touite), 0) AS compteur_like
             FROM touite t
             JOIN likes ON t.id_touite = likes.id_touite
@@ -288,8 +313,8 @@ class TouiteurRepository {
     public function findTouitesByTag(string $tag): array {
         $query = "
             SELECT t.id_touite, t.username, t.message,
-                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
-                   NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
+                   TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
+                   NVL((select sum(likes.vote)from likes where t.id_touite = likes.id_touite),0) as compteur_like
             FROM touite t
             JOIN touite_tag tt ON t.id_touite = tt.id_touite
             JOIN tag ON tt.id_tag = tag.id_tag
@@ -358,6 +383,12 @@ class TouiteurRepository {
         return $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
+    public function TagExists(string $tag): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM tag WHERE libelle = :tag");
+        $stmt->execute(['tag' => $tag]);
+        return $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+    }
+
     public function getCreationDate(string $username): ?string {
         $stmt = $this->pdo->prepare(
             "SELECT TO_CHAR(date_creation, 'DD/MM/YY') AS DATE_CREATION FROM utilisateur WHERE username = :username"
@@ -372,6 +403,20 @@ class TouiteurRepository {
             "SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
         );
         $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+    }
+
+    /**
+     * vérifie si un utilisateur suit un tag
+     * @param string $suiveur
+     * @param string $tagSuivi
+     * @return bool
+     */
+    public function isFollowingTag(string $suiveur, string $tagSuivi): bool {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) AS NB FROM abonnement_tag a JOIN tag t on t.id_tag=a.id_tag WHERE a.username = :abonne AND t.libelle = :tag"
+        );
+        $stmt->execute(['abonne' => $suiveur, 'tag' => $tagSuivi]);
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
@@ -401,6 +446,31 @@ class TouiteurRepository {
     }
 
     /**
+     * Suit un tag
+     * @param string $suiveur
+     * @param string $tagSuivi
+     * @return bool
+     */
+    public function followTag(string $suiveur, string $tagSuivi): bool {
+        //si le tag existe ou si il est déja follow
+        if (!$this->tagExists($tagSuivi) || $this->isFollowingTag($suiveur, $tagSuivi)) {
+            return false;
+        }
+
+        try{
+            $stmtGetTagId = $this->pdo->prepare("SELECT id_tag FROM tag WHERE libelle = :tag");
+            $stmtInsert = $this->pdo->prepare("INSERT INTO abonnement_tag (username, id_tag) VALUES (:abonne, :tagid)");
+            $stmtGetTagId->execute(['tag' => $tagSuivi]);
+            $stmtInsert->execute(['abonne' => $suiveur, 'tagid' => $stmtGetTagId->fetchColumn()]);
+            return true;
+
+        }catch (PDOException $e) {
+            //erreur de trigger
+            return false;
+        }
+    }
+
+    /**
      * Retire le suivi sur un utilisateur
      *
      * @param string $suivi La personne qui ne sera plus suivi
@@ -415,19 +485,70 @@ class TouiteurRepository {
         return $stmt->rowCount() > 0;
     }
 
+    /**
+     * Retire le suivi sur un tag
+     * @param string $suiveur
+     * @param string $tagSuivi
+     * @return bool
+     */
+    public function unfollowTag(string $suiveur, string $tagSuivi): bool {
+        $stmtDelete = $this->pdo->prepare(
+            "DELETE FROM abonnement_tag WHERE username = :abonne AND id_tag = (SELECT id_tag FROM tag WHERE libelle = :tag)"
+        );
+        $stmtDelete->execute(['abonne' => $suiveur, 'tag' => $tagSuivi]);
+        return $stmtDelete->rowCount() > 0;
+    }
+
+    /**
+     * compte le nombre de followers d'un user
+     * @param string $username
+     * @return int
+     */
     public function countFollowers(string $username): int {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE suivi = :username");
         $stmt->execute(['username' => $username]);
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
+    /**
+     * compte le nombre de followers d'un tag
+     * @param string $tag
+     * @return int
+     */
+    public function countTagFollowers(string $tag): int{
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_tag ab JOIN tag t ON ab.id_tag=t.id_tag WHERE libelle=:tag");
+        $stmt->execute(['tag' => $tag]);
+
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+    }
+
+    /**
+     * compte le nombre de compte qu'un user follow
+     * @param string $username
+     * @return int
+     */
     public function countFollows(string $username): int {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :username");
         $stmt->execute(['username' => $username]);
         return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
-    // renvoie les user qui suivent un user
+    /**
+     * compte le nombre de tags qu'un user follow
+     * @param string $username
+     * @return int
+     */
+    public function countTagFollows(string $username): int{
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_tag WHERE username=:username");
+        $stmt->execute(['username' => $username]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+    }
+
+    /**
+     * trouve les user qui suivent un user
+     * @param string $username
+     * @return array
+     */
     public function findFollowers(string $username): array {
         $stmt = $this->pdo->prepare(
             "SELECT abonne FROM abonnement_utilisateur WHERE suivi = :username ORDER BY abonne"
