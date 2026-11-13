@@ -18,12 +18,14 @@ class DefaultAction extends Action {
                     if ($connecte) {
                         // Connecté : touites des personnes / tags suivis
                         $username = unserialize($_SESSION['user'])->username;
-                        $touites = $repo->findFeed($username);
+                        $touites = $repo->findPourtoi($username);
+
                     } else {
                         // Pas connecté : tous les touites
                         $touites = $repo->findAllTouites();
                     }
                 } catch (\Exception $e) {
+                    echo $e->getMessage();
                     // En cas d'erreur, on affiche le message "aucun touite"
                 }
 

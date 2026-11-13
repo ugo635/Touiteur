@@ -16,22 +16,16 @@ class TouiteurRepository {
     private static ?TouiteurRepository $instance = null;
     private static array $config = [];
 
-    private function __construct(array $conf) {
+    private function __construct(array $conf)
+    {
         $port = $conf['port'] ?? 1521;
         $dsn = "oci:dbname=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$conf['host']})(PORT={$port}))(CONNECT_DATA=(SID={$conf['database']})))";
 
-        $this->pdo = new PDO(
-            $dsn,
-            $conf['username'],
-            $conf['password'],
-            [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_PERSISTENT => true
-            ]
-        );
+        $this->pdo = new PDO($dsn, $conf['username'], $conf['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT => true]);
     }
 
-    public static function setConfig(string $file): void {
+    public static function setConfig(string $file): void
+    {
         $conf = parse_ini_file($file);
 
         if ($conf === false) {
@@ -41,7 +35,8 @@ class TouiteurRepository {
         self::$config = $conf;
     }
 
-    public static function getInstance(): TouiteurRepository {
+    public static function getInstance(): TouiteurRepository
+    {
         if (is_null(self::$instance)) {
             if (empty(self::$config)) {
                 throw new Exception("La configuration de la base doit être initialisée avec setConfig()");
@@ -53,36 +48,28 @@ class TouiteurRepository {
         return self::$instance;
     }
 
-    public function saveTouite(Touite $touite): Touite {
+    public function saveTouite(Touite $touite): Touite
+    {
         $this->pdo->beginTransaction();
 
         try {
             $username = $touite->user->formattedUsername;
 
-            $stmtUser = $this->pdo->prepare(
-                "SELECT username FROM utilisateur WHERE username = :username"
-            );
+            $stmtUser = $this->pdo->prepare("SELECT username FROM utilisateur WHERE username = :username");
             $stmtUser->execute(['username' => $username]);
 
             if (!$stmtUser->fetch()) {
                 throw new UnknownUser("Utilisateur inconnu");
             }
 
-            $stmtTouite = $this->pdo->prepare(
-                "INSERT INTO touite (username, message) VALUES (:username, :message)"
-            );
-            $stmtTouite->execute([
-                'username' => $username,
-                'message' => $touite->message
-            ]);
+            $stmtTouite = $this->pdo->prepare("INSERT INTO touite (username, message) VALUES (:username, :message)");
+            $stmtTouite->execute(['username' => $username, 'message' => $touite->message]);
 
             // Récup l'id du touite
-            $stmtId = $this->pdo->prepare(
-                "SELECT MAX(id_touite) FROM touite WHERE username = :username"
-            );
+            $stmtId = $this->pdo->prepare("SELECT MAX(id_touite) FROM touite WHERE username = :username");
 
             $stmtId->execute(['username' => $username]);
-            $touite->setId((string) $stmtId->fetchColumn());
+            $touite->setId((string)$stmtId->fetchColumn());
 
             $this->pdo->commit();
 
@@ -97,23 +84,23 @@ class TouiteurRepository {
      * @param string $username
      * @return User|null
      */
-    public function findUserByUsername(string $username): ?User {
+    public function findUserByUsername(string $username): ?User
+    {
         $query = "SELECT username,nom, prenom, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
               FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
         $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $row
-            ? new User($row["USERNAME"] ,$row["NOM"], $row["PRENOM"], $row["DATE_CREATION"])
-            : null;
+        return $row ? new User($row["USERNAME"], $row["NOM"], $row["PRENOM"], $row["DATE_CREATION"]) : null;
     }
 
     /**
      * @param string $username username au format (Nom Prenom) en minuscule et sans espace
      * @return array
      */
-    public function findTouitesByUser(string $username): array {
+    public function findTouitesByUser(string $username): array
+    {
         $query = "
             SELECT touite.id_touite, message, utilisateur.username, nom, prenom,
                    TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation,
@@ -131,19 +118,14 @@ class TouiteurRepository {
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME'], $row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
-            $touites[] = new Touite(
-                $row['MESSAGE'],
-                $user,
-                $row['DATE_TOUITE'],
-                (string) $row['ID_TOUITE'],
-                (int) $row['COMPTEUR_LIKE']
-            );
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
         }
 
         return $touites;
     }
 
-    public function deleteTouite(string $idTouite, string $username): bool {
+    public function deleteTouite(string $idTouite, string $username): bool
+    {
         // Optionnel : vérifier d'abord si le touite appartient bien à l'utilisateur
         $stmtCheck = $this->pdo->prepare("SELECT username FROM touite WHERE id_touite = :id");
         $stmtCheck->execute(['id' => $idTouite]);
@@ -168,7 +150,8 @@ class TouiteurRepository {
         return $stmt->rowCount() > 0;
     }
 
-    public function findAllTouites(): array {
+    public function findAllTouites(): array
+    {
         $query = "
             SELECT id_touite, username, message,
                    TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite,
@@ -182,19 +165,14 @@ class TouiteurRepository {
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite(
-                $row['MESSAGE'],
-                $user,
-                $row['DATE_TOUITE'],
-                (string) $row['ID_TOUITE'],
-                (int) $row['COMPTEUR_LIKE']
-            );
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
         }
 
         return $touites;
     }
 
-    public function checkUser(string $username, string $password): User {
+    public function checkUser(string $username, string $password): User
+    {
         $query = "SELECT username, nom, prenom, mdp, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation
                   FROM utilisateur WHERE username = :username";
         $stmt = $this->pdo->prepare($query);
@@ -208,20 +186,15 @@ class TouiteurRepository {
         return new User($row['USERNAME'], $row['NOM'], $row['PRENOM'], $row['DATE_CREATION']);
     }
 
-    public function createUser(string $username,string $email, string $nom, string $prenom, string $password): User {
+    public function createUser(string $username, string $email, string $nom, string $prenom, string $password): User
+    {
         $creationDate = date('d/m/y');
 
         $query = "INSERT INTO utilisateur (username, nom, prenom, mdp, email, date_creation) VALUES (:username, :nom, :prenom, :password, :email, SYSDATE)";
         $stmt = $this->pdo->prepare($query);
 
         try {
-            $stmt->execute([
-                'username' => $username,
-                'nom' => $nom,
-                'prenom' => $prenom,
-                'password' => password_hash($password, PASSWORD_DEFAULT),
-                'email' => $email
-            ]);
+            $stmt->execute(['username' => $username, 'nom' => $nom, 'prenom' => $prenom, 'password' => password_hash($password, PASSWORD_DEFAULT), 'email' => $email]);
         } catch (PDOException $e) {
             throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
         }
@@ -229,7 +202,8 @@ class TouiteurRepository {
         return new User($username, $nom, $prenom, $creationDate);
     }
 
-    public function getUserProfile(string $username): ?array {
+    public function getUserProfile(string $username): ?array
+    {
         $query = "SELECT username, nb_follower, nb_follows, TO_CHAR(date_creation, 'DD/MM/YY') AS date_creation 
               FROM utilisateur 
               WHERE username = :username";
@@ -239,14 +213,12 @@ class TouiteurRepository {
         return $row ?: null;
     }
 
-    public function like(string $touite, string $user, int $change): string {
+    public function like(string $touite, string $user, int $change): string
+    {
         $query = "SELECT username, id_touite, vote FROM likes WHERE username = :username AND id_touite = :id_touite";
         $stmt = $this->pdo->prepare($query);
 
-        $stmt->execute([
-            "id_touite" => $touite,
-            "username" => $user
-        ]);
+        $stmt->execute(["id_touite" => $touite, "username" => $user]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -255,34 +227,25 @@ class TouiteurRepository {
             if ($row["VOTE"] == $change) { // Si c'est le meme, on retire le like/delike
                 $query = "DELETE FROM likes WHERE username = :username AND id_touite = :id_touite";
                 $stmt = $this->pdo->prepare($query);
-                $stmt->execute([
-                    "username" => $user,
-                    "id_touite" => $touite
-                ]);
+                $stmt->execute(["username" => $user, "id_touite" => $touite]);
                 return "Removed";
             } else { // On remplace
                 $query = "UPDATE likes SET vote = :vote WHERE username = :username AND id_touite = :id_touite";
                 $stmt = $this->pdo->prepare($query);
-                $stmt->execute([
-                    "username" => $user,
-                    "id_touite" => $touite,
-                    "vote" => $change
-                ]);
+                $stmt->execute(["username" => $user, "id_touite" => $touite, "vote" => $change]);
                 return "Replaced";
             }
         } else { // Si ya pas de like, on ajoute le like
             $query = "INSERT INTO likes (username, id_touite, vote) VALUES (:username, :id_touite, :vote)";
             $stmt = $this->pdo->prepare($query);
 
-            $stmt->execute([
-                "id_touite" => $touite,
-                "username" => $user,
-                "vote" => $change,
-            ]);
+            $stmt->execute(["id_touite" => $touite, "username" => $user, "vote" => $change,]);
             return "Added";
         }
     }
-    public function findTouiteByLike(string $username): array {
+
+    public function findTouiteByLike(string $username): array
+    {
         $query = "
             SELECT t.id_touite, t.username, t.message,
                    TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
@@ -299,18 +262,14 @@ class TouiteurRepository {
         $touites = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite(
-                $row['MESSAGE'],
-                $user,
-                $row['DATE_TOUITE'],
-                (string) $row['ID_TOUITE'],
-                (int) $row['COMPTEUR_LIKE']
-            );
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
         }
 
         return $touites;
     }
-    public function findTouitesByTag(string $tag): array {
+
+    public function findTouitesByTag(string $tag): array
+    {
         $query = "
             SELECT t.id_touite, t.username, t.message,
                    TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
@@ -329,13 +288,7 @@ class TouiteurRepository {
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite(
-                $row['MESSAGE'],
-                $user,
-                $row['DATE_TOUITE'],
-                (string) $row['ID_TOUITE'],
-                (int) $row['COMPTEUR_LIKE']
-            );
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
         }
 
         return $touites;
@@ -346,7 +299,8 @@ class TouiteurRepository {
      * @param string $touite
      * @return void
      */
-    public function saveTags(Touite $touite): void {
+    public function saveTags(Touite $touite): void
+    {
         $this->pdo->beginTransaction();
 
         try {
@@ -375,35 +329,33 @@ class TouiteurRepository {
     }
 
 
-
-
-    public function userExists(string $username): bool {
+    public function userExists(string $username): bool
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM utilisateur WHERE username = :username");
         $stmt->execute(['username' => $username]);
         return $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
-    public function TagExists(string $tag): bool {
+    public function TagExists(string $tag): bool
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM tag WHERE libelle = :tag");
         $stmt->execute(['tag' => $tag]);
         return $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
-    public function getCreationDate(string $username): ?string {
-        $stmt = $this->pdo->prepare(
-            "SELECT TO_CHAR(date_creation, 'DD/MM/YY') AS DATE_CREATION FROM utilisateur WHERE username = :username"
-        );
+    public function getCreationDate(string $username): ?string
+    {
+        $stmt = $this->pdo->prepare("SELECT TO_CHAR(date_creation, 'DD/MM/YY') AS DATE_CREATION FROM utilisateur WHERE username = :username");
         $stmt->execute(['username' => $username]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? $row['DATE_CREATION'] : null;
     }
 
-    public function isFollowing(string $suiveur, string $suivi): bool {
-        $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
-        );
+    public function isFollowing(string $suiveur, string $suivi): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi");
         $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
     /**
@@ -412,12 +364,11 @@ class TouiteurRepository {
      * @param string $tagSuivi
      * @return bool
      */
-    public function isFollowingTag(string $suiveur, string $tagSuivi): bool {
-        $stmt = $this->pdo->prepare(
-            "SELECT COUNT(*) AS NB FROM abonnement_tag a JOIN tag t on t.id_tag=a.id_tag WHERE a.username = :abonne AND t.libelle = :tag"
-        );
+    public function isFollowingTag(string $suiveur, string $tagSuivi): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_tag a JOIN tag t on t.id_tag=a.id_tag WHERE a.username = :abonne AND t.libelle = :tag");
         $stmt->execute(['abonne' => $suiveur, 'tag' => $tagSuivi]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'] > 0;
     }
 
     /**
@@ -427,16 +378,14 @@ class TouiteurRepository {
      * @param string $suiveur La personne qui suit l'autre
      * @return bool Est-ce que la personne a bien été follow, si false, il y a eu une erreur
      */
-    public function follow(string $suiveur, string $suivi): bool {
-        if ($suiveur === $suivi || !$this->userExists($suivi)
-            || $this->isFollowing($suiveur, $suivi) || $suivi == (unserialize($_SESSION["user"])->username ?? "")) {
+    public function follow(string $suiveur, string $suivi): bool
+    {
+        if ($suiveur === $suivi || !$this->userExists($suivi) || $this->isFollowing($suiveur, $suivi) || $suivi == (unserialize($_SESSION["user"])->username ?? "")) {
             return false;
         }
 
         try {
-            $stmt = $this->pdo->prepare(
-                "INSERT INTO abonnement_utilisateur (abonne, suivi) VALUES (:abonne, :suivi)"
-            );
+            $stmt = $this->pdo->prepare("INSERT INTO abonnement_utilisateur (abonne, suivi) VALUES (:abonne, :suivi)");
             $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
             return true;
         } catch (PDOException $e) {
@@ -451,20 +400,21 @@ class TouiteurRepository {
      * @param string $tagSuivi
      * @return bool
      */
-    public function followTag(string $suiveur, string $tagSuivi): bool {
+    public function followTag(string $suiveur, string $tagSuivi): bool
+    {
         //si le tag existe ou si il est déja follow
         if (!$this->tagExists($tagSuivi) || $this->isFollowingTag($suiveur, $tagSuivi)) {
             return false;
         }
 
-        try{
+        try {
             $stmtGetTagId = $this->pdo->prepare("SELECT id_tag FROM tag WHERE libelle = :tag");
             $stmtInsert = $this->pdo->prepare("INSERT INTO abonnement_tag (username, id_tag) VALUES (:abonne, :tagid)");
             $stmtGetTagId->execute(['tag' => $tagSuivi]);
             $stmtInsert->execute(['abonne' => $suiveur, 'tagid' => $stmtGetTagId->fetchColumn()]);
             return true;
 
-        }catch (PDOException $e) {
+        } catch (PDOException $e) {
             //erreur de trigger
             return false;
         }
@@ -477,10 +427,9 @@ class TouiteurRepository {
      * @param string $suiveur La personne qui va retirer son suivi
      * @return bool Est-ce que le follow a bien été retirer
      */
-    public function unfollow(string $suiveur, string $suivi): bool {
-        $stmt = $this->pdo->prepare(
-            "DELETE FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi"
-        );
+    public function unfollow(string $suiveur, string $suivi): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM abonnement_utilisateur WHERE abonne = :abonne AND suivi = :suivi");
         $stmt->execute(['abonne' => $suiveur, 'suivi' => $suivi]);
         return $stmt->rowCount() > 0;
     }
@@ -491,10 +440,9 @@ class TouiteurRepository {
      * @param string $tagSuivi
      * @return bool
      */
-    public function unfollowTag(string $suiveur, string $tagSuivi): bool {
-        $stmtDelete = $this->pdo->prepare(
-            "DELETE FROM abonnement_tag WHERE username = :abonne AND id_tag = (SELECT id_tag FROM tag WHERE libelle = :tag)"
-        );
+    public function unfollowTag(string $suiveur, string $tagSuivi): bool
+    {
+        $stmtDelete = $this->pdo->prepare("DELETE FROM abonnement_tag WHERE username = :abonne AND id_tag = (SELECT id_tag FROM tag WHERE libelle = :tag)");
         $stmtDelete->execute(['abonne' => $suiveur, 'tag' => $tagSuivi]);
         return $stmtDelete->rowCount() > 0;
     }
@@ -504,10 +452,11 @@ class TouiteurRepository {
      * @param string $username
      * @return int
      */
-    public function countFollowers(string $username): int {
+    public function countFollowers(string $username): int
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE suivi = :username");
         $stmt->execute(['username' => $username]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
     /**
@@ -515,11 +464,12 @@ class TouiteurRepository {
      * @param string $tag
      * @return int
      */
-    public function countTagFollowers(string $tag): int{
+    public function countTagFollowers(string $tag): int
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_tag ab JOIN tag t ON ab.id_tag=t.id_tag WHERE libelle=:tag");
         $stmt->execute(['tag' => $tag]);
 
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
     /**
@@ -527,10 +477,11 @@ class TouiteurRepository {
      * @param string $username
      * @return int
      */
-    public function countFollows(string $username): int {
+    public function countFollows(string $username): int
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_utilisateur WHERE abonne = :username");
         $stmt->execute(['username' => $username]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
     /**
@@ -538,10 +489,11 @@ class TouiteurRepository {
      * @param string $username
      * @return int
      */
-    public function countTagFollows(string $username): int{
+    public function countTagFollows(string $username): int
+    {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS NB FROM abonnement_tag WHERE username=:username");
         $stmt->execute(['username' => $username]);
-        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['NB'];
+        return (int)$stmt->fetch(PDO::FETCH_ASSOC)['NB'];
     }
 
     /**
@@ -549,59 +501,120 @@ class TouiteurRepository {
      * @param string $username
      * @return array
      */
-    public function findFollowers(string $username): array {
-        $stmt = $this->pdo->prepare(
-            "SELECT abonne FROM abonnement_utilisateur WHERE suivi = :username ORDER BY abonne"
-        );
+    public function findFollowers(string $username): array
+    {
+        $stmt = $this->pdo->prepare("SELECT abonne FROM abonnement_utilisateur WHERE suivi = :username ORDER BY abonne");
         $stmt->execute(['username' => $username]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
     // renvoie les user qui sont suivis par un user
-    public function findFollows(string $username): array {
-        $stmt = $this->pdo->prepare(
-            "SELECT suivi FROM abonnement_utilisateur WHERE abonne = :username ORDER BY suivi"
-        );
+    public function findFollows(string $username): array
+    {
+        $stmt = $this->pdo->prepare("SELECT suivi FROM abonnement_utilisateur WHERE abonne = :username ORDER BY suivi");
         $stmt->execute(['username' => $username]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    public function findPourtoi(string $username): array {
+
+    public function findPourtoi(string $username): array
+    {
+
+        // 1. Touites des personnes et tags suivis
         $query = "
-            SELECT t.id_touite, t.username, t.message,
-                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
-                   NVL((SELECT SUM(l.vote) FROM likes l WHERE l.id_touite = t.id_touite), 0) AS compteur_like
-            FROM touite t
-            WHERE t.username IN (
-                      SELECT au.suivi
-                      FROM abonnement_utilisateur au
-                      WHERE au.abonne = :user_follow
-                  )
-               OR t.id_touite IN (
-                      SELECT tt.id_touite
-                      FROM touite_tag tt
-                      JOIN abonnement_tag ab ON tt.id_tag = ab.id_tag
-                      WHERE ab.username = :user_tag
-                  )
-            ORDER BY t.date_touite DESC, t.id_touite DESC
-        ";
+        SELECT t.id_touite, t.username, t.message,
+               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               NVL(l_sum.compteur_like, 0) AS compteur_like
+        FROM (
+            SELECT id_touite
+            FROM touite
+            WHERE username IN (
+                SELECT suivi
+                FROM abonnement_utilisateur
+                WHERE abonne = :username1
+            )
+
+            UNION
+
+            SELECT tt.id_touite
+            FROM touite_tag tt
+            JOIN abonnement_tag ab
+                ON tt.id_tag = ab.id_tag
+            WHERE ab.username = :username2
+        ) feed
+
+        JOIN touite t ON feed.id_touite = t.id_touite
+
+        LEFT JOIN (
+            SELECT id_touite, SUM(vote) AS compteur_like
+            FROM likes
+            GROUP BY id_touite
+        ) l_sum ON t.id_touite = l_sum.id_touite
+
+        ORDER BY t.date_touite DESC, t.id_touite DESC
+    ";
+        //reste
+        $query2 = "
+        SELECT t.id_touite, t.username, t.message,
+               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               NVL((
+                   SELECT SUM(l.vote)
+                   FROM likes l
+                   WHERE l.id_touite = t.id_touite
+               ), 0) AS compteur_like
+        FROM touite t
+
+        MINUS
+
+        SELECT t.id_touite, t.username, t.message,
+               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               NVL((
+                   SELECT SUM(l.vote)
+                   FROM likes l
+                   WHERE l.id_touite = t.id_touite
+               ), 0) AS compteur_like
+        FROM touite t
+        WHERE t.id_touite IN (
+            SELECT id_touite
+            FROM touite
+            WHERE username IN (
+                SELECT suivi
+                FROM abonnement_utilisateur
+                WHERE abonne = :username1
+            )
+
+            UNION
+
+            SELECT tt.id_touite
+            FROM touite_tag tt
+            JOIN abonnement_tag ab
+                ON tt.id_tag = ab.id_tag
+            WHERE ab.username = :username2
+        )
+
+        ORDER BY 4 DESC, 1 DESC
+    ";
 
         $stmt = $this->pdo->prepare($query);
-        $stmt->execute([
-            'user_follow' => $username,
-            'user_tag' => $username
-        ]);
+        $stmt->execute(['username1' => $username, 'username2' => $username]);
+
+        $stmt2 = $this->pdo->prepare($query2);
+        $stmt2->execute(['username1' => $username, 'username2' => $username]);
 
         $touites = [];
+
+        // Premier groupe
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $user = new User($row['USERNAME']);
-            $touites[] = new Touite(
-                $row['MESSAGE'],
-                $user,
-                $row['DATE_TOUITE'],
-                (string) $row['ID_TOUITE'],
-                (int) $row['COMPTEUR_LIKE']
-            );
+
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
+        }
+
+        // Deuxième groupe
+        while ($row = $stmt2->fetch(PDO::FETCH_ASSOC)) {
+            $user = new User($row['USERNAME']);
+
+            $touites[] = new Touite($row['MESSAGE'], $user, $row['DATE_TOUITE'], (string)$row['ID_TOUITE'], (int)$row['COMPTEUR_LIKE']);
         }
 
         return $touites;
