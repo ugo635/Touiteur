@@ -27,21 +27,4 @@ class User {
         else if ($at == "formattedUsername") return strtolower(str_replace(" ", "", $this->username));
         throw new InvalidPropertyNameException("$at: invalid property");
     }
-
-    public function addTouite($touite): void {
-        $this->touites[] = $touite;
-    }
-    public function addFollower($follower): void {
-        $this->followers[] = $follower;
-    }
-    public function addFollow($follow): void {
-        $this->follows[] = $follow;
-    }
-    public function addTagFollow($tag): void {
-        $this->tagfollows[] = $tag;
-    }
-    public function addLike($like): void {
-        $this->likes[] = $like;
-    }
-
 }

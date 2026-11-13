@@ -32,7 +32,7 @@ abstract class Action {
                 <a href="?action=add-touite" class="$btn">Poster</a>
                 <a href="?action=tendances" class="$btn">Tendances</a>
         HTML;
-
+        //bouton login ou log out si l'utilisateur est connecté ou non
         if (!isset($_SESSION["username"])) {
             $html .= "<a href='?action=login' class='$btn'>Login</a>";
         } else {

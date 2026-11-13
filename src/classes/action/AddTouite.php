@@ -51,7 +51,7 @@ class AddTouite extends Action {
             . RendererFactory::getRenderer($touite)->render();
     }
 
-
+    //formulaire d'ajout
     private function form(string $valeur = ''): string {
         $valeur = htmlspecialchars($valeur);
         return <<<HTML

@@ -197,9 +197,10 @@ class TouiteRenderer implements Renderer {
                     btn.classList.toggle("bg-blue-700", !ajouterOuPas);
                     btn.onclick = () => follow(post, persQuiVaEtreSuivi, persQuiVaSuivre, !ajouterOuPas);
                 }
-
+                // supprime un touite
                 async function deleteTouite(idTouite) {
                     try {
+                        // envoie la requete post
                         const res = await fetch("?action=delete-touite", {
                             method: "POST",
                             headers: {
@@ -209,6 +210,7 @@ class TouiteRenderer implements Renderer {
                                 id_touite: idTouite
                             })
                         });
+                        // verifie la reponse
                         if (!res.ok) {
                             alert("Erreur lors de la suppression.");
                             return;

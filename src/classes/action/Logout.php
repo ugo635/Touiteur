@@ -2,8 +2,10 @@
 
 namespace iutnc\touiteur\action;
 
+// gere la deconnexion
 class Logout extends Action {
 
+    //affiche le formulaire de deconnexion
     public function get(): string {
         return "<form method='POST' action='?action=logout' class='flex justify-center mt-10'>
                     <button type='submit' class='cursor-pointer'>
@@ -12,7 +14,9 @@ class Logout extends Action {
                 </form>";
     }
 
+    //deconnexion
     public function post(): string {
+        // supprime les donnees de session
         unset($_SESSION['username'],$_SESSION['user']);
         session_regenerate_id(true);
 
