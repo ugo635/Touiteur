@@ -49,7 +49,8 @@ class DefaultAction extends Action {
                     <script>
                         document.querySelector("#tagSearch").addEventListener("keypress", (event) => {
                             if (event.key === "Enter") {
-                                window.location.href = ("?action=voir-tag&tag=" + document.querySelector("#tagSearch").value)
+                                const val = document.querySelector("#tagSearch").value.replaceAll("#", "").toLowerCase()
+                                window.location.href = ("?action=voir-tag&tag=" + val)
                             }
                         });
                     </script>
