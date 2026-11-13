@@ -24,7 +24,7 @@ class Tendances extends Action {
                 $tagsHtml .= <<<HTML
                     <div class="flex justify-between gap-4 p-2 border rounded-sm m-2">
                         <a href="?action=voir-tag&tag=$nomTag" class="text-blue-600">#$nomTag</a>
-                        <span>$nbTag followers</span>
+                        <span>$nbTag utilisations</span>
                     </div>
                 HTML;
 
