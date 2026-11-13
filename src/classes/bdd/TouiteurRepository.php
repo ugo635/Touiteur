@@ -594,12 +594,16 @@ class TouiteurRepository {
     public function scoreMoyen(string $user): float {
         $query = "
             SELECT TO_CHAR(
-                NVL(AVG(vote), 0),
-                'FM999999990D999999', -- fix oracle formatting (par ex renvoie ,6 au lieu de 0.6  qui casse dans la conversion en float
+                NVL(AVG(NVL(score, 0)), 0),
+                'FM999999990D999999', -- fix le formatting oracle que php arrive pas à convertir en float
                 'NLS_NUMERIC_CHARACTERS = ''.,'''
             )
-            FROM likes
-            JOIN touite ON touite.id_touite = likes.id_touite
+            FROM touite
+            LEFT JOIN (
+                SELECT id_touite, SUM(vote) AS score
+                FROM likes
+                GROUP BY id_touite
+            ) somme ON somme.id_touite = touite.id_touite
             WHERE touite.username = :username
         ";
 
