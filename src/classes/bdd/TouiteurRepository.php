@@ -588,4 +588,26 @@ class TouiteurRepository {
         $stmt->execute(['username' => $username]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+
+    public function findTendances(): array {
+        $query = "
+            SELECT t.libelle, COUNT(a.username) AS nb_follows
+            FROM tag t
+            LEFT JOIN abonnement_tag a ON a.id_tag = t.id_tag
+            GROUP BY t.id_tag, t.libelle
+            ORDER BY nb_follows DESC, t.libelle ASC
+        ";
+
+        $stmt = $this->pdo->query($query);
+
+        $tendances = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $tendances[] = [
+                'tag' => $row['LIBELLE'],
+                'nb'  => (int) $row['NB_FOLLOWS'],
+            ];
+        }
+
+        return $tendances;
+    }
 }

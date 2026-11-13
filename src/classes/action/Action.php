@@ -29,6 +29,7 @@ abstract class Action {
                 <a href="?action=default" class="$btn">Home</a>
                 <a href="?action=profile&username=$username" class="$btn">Profil</a>
                 <a href="?action=add-touite" class="$btn">Poster</a>
+                <a href="?action=tendances" class="$btn">Tendances</a>
         HTML;
 
         if (!isset($_SESSION["username"])) {
