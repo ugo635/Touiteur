@@ -14,7 +14,7 @@ abstract class Action {
     }
 
     public function prefix(): string {
-        $btn = "";
+        $btn = "hover:underline";
         $username = $_SESSION["username"] ?? "";
 
         $html = <<<HTML
