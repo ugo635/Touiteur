@@ -21,9 +21,10 @@ class Tendances extends Action {
             foreach ($tags as $tag) {
                 $nomTag = $tag["tag"];
                 $nbTag = $tag["nb"];
+                $nomTagSafe = htmlspecialchars($tag["tag"], ENT_QUOTES, 'UTF-8');
                 $tagsHtml .= <<<HTML
                     <div class="flex justify-between gap-4 p-2 border rounded-sm m-2">
-                        <a href="?action=voir-tag&tag=$nomTag" class="text-blue-600">#$nomTag</a>
+                        <a href="?action=voir-tag&tag=$nomTagSafe" class="text-blue-600">#$nomTagSafe</a>
                         <span>$nbTag utilisations</span>
                     </div>
                 HTML;

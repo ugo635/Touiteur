@@ -24,7 +24,6 @@ class DefaultAction extends Action {
                         $touites = $repo->findAllTouites();
                     }
                 } catch (\Exception $e) {
-                    echo $e->getMessage();
                     // En cas d'erreur, on affiche le message "aucun touite"
                 }
 

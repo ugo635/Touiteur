@@ -18,8 +18,9 @@ class Profile extends Action {
             HTML;
         }
 
-        $user = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
-        
+        $userSafe = htmlspecialchars($user, ENT_QUOTES, 'UTF-8');
+        $userUrl = urlencode($user);
+
         //cherche l'utilisateur dans la bdd et si il n'existe pas retourne un msg
         $repo = TouiteurRepository::getInstance();
         $profil = $repo->findUserByUsername($user);
@@ -45,14 +46,17 @@ class Profile extends Action {
 
         $estDejaSuivi = $repo->isFollowing($moi, $user) && $moi !== $user && $user !== "" && $moi !== "";
 
+        $jsUser = htmlspecialchars(json_encode($user), ENT_QUOTES, 'UTF-8');
+        $jsMoi = htmlspecialchars(json_encode($moi), ENT_QUOTES, 'UTF-8');
+
         $unfollowBtn = <<<HTML
-                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', false)">
+                <button class="rounded-full bg-red-700 p-2 cursor-pointer text-white" onclick="follow({$jsUser}, {$jsMoi}, false)">
                     Unfollow -
                 </button>
             HTML;
 
         $followBtn = <<<HTML
-            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow('$user', '$moi', true)">
+            <button class="rounded-full bg-blue-700 p-2 cursor-pointer text-white" onclick="follow({$jsUser}, {$jsMoi}, true)">
                 Follow +
             </button>
         HTML;
@@ -87,22 +91,22 @@ class Profile extends Action {
              
              <!-- pseudo, nb followers, nb follows, date creation -->
              <div class="flex justify-between mb-4">
-                <h1 class="text-xl font-bold">@$user</h1>
+                <h1 class="text-xl font-bold">@$userSafe</h1>
                 <div class="flex items-center space-x-4">
                     <!--Bouton followers-->
-                    <a href="?action=followers&user=$user" class="text-black-500 hover:underline">
+                    <a href="?action=followers&user=$userUrl" class="text-black-500 hover:underline">
                     <span id="nb-follow" class="font-bold">$nbFollowers</span>
                     <span class="text-gray-500 text-sm">abonnés</span>      
                     </a>
                     
                     <!--Bouton follows-->
-                    <a href="?action=follows&user=$user" class="text-black-500 hover:underline">
+                    <a href="?action=follows&user=$userUrl" class="text-black-500 hover:underline">
                         <span class="font-bold">$nbFollows</span>
                         <span class="text-gray-500 text-sm">abonnements</span>      
                     </a>
                     
                             <!--Bouton tags suivis-->
-                    <a href="?action=tag-follows&user=$user" class="text-black-500 hover:underline">
+                    <a href="?action=tag-follows&user=$userUrl" class="text-black-500 hover:underline">
                         <span class="font-bold">$nbTagsFollows</span>
                         <span class="text-gray-500 text-sm">tags suivis</span>
                     </a>
@@ -124,10 +128,10 @@ class Profile extends Action {
              
              <!--barre touites/likes-->
              <div class="flex border-b border-gray-200 w-full">
-                <a href="?action=profile&username=$user&tab=touites" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatTouites">
+                <a href="?action=profile&username=$userUrl&tab=touites" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatTouites">
                 Touites
                 </a>
-                <a href="?action=profile&username=$user&tab=likes" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatLikes">
+                <a href="?action=profile&username=$userUrl&tab=likes" class="flex-1 text-center py-3 border-b-2 transition duration-200 $formatLikes">
                 Likes
                 </a>
              </div>

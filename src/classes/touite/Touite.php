@@ -48,7 +48,7 @@ class Touite {
     }
 
     public function getListeTag(): array {
-        preg_match_all('/#(\w+)/', $this->message, $m);
+        preg_match_all('/#(\w+)/', strtolower($this->message), $m);
         return array_unique($m[1]); //array_unique enleve les doublon
     }
 

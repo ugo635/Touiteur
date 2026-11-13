@@ -121,6 +121,10 @@ class Login extends Action {
             }
         } else if ($type == "register") {
             try {
+                if (!preg_match('/^[a-z0-9_]{3,30}$/', $username)) {
+                    return $this->get() . "<p class='text-red-500 text-center'>Nom d'utilisateur invalide (3-30 caractères : a-z, 0-9, _).</p>";
+                }
+
                 $user = TouiteurRepository::getInstance()->createUser($username, $email, $nom, $prenom, $password);
                 $this->openSession($user);
                 return "<br><div class='flex justify-center'><p class='text-green-500 font-medium'>Utilisateur créer avec succès</p></div>";

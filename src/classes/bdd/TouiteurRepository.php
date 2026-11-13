@@ -196,7 +196,7 @@ class TouiteurRepository {
         try {
             $stmt->execute(['username' => $username, 'nom' => $nom, 'prenom' => $prenom, 'password' => password_hash($password, PASSWORD_DEFAULT), 'email' => $email]);
         } catch (PDOException $e) {
-            throw new UnableToCreateUser("Impossible de créer l'utilisateur : " . $e->getMessage());
+            throw new UnableToCreateUser("Impossible de créer l'utilisateur : ");
         }
 
         return new User($username, $nom, $prenom, $creationDate);
@@ -575,7 +575,7 @@ class TouiteurRepository {
             FROM tag
             JOIN touite_tag ON touite_tag.id_tag = tag.id_tag
             GROUP BY tag.id_tag, tag.libelle
-            ORDER BY nb_mentions DESC, tag.libelle
+            ORDER BY nb_mentions, tag.libelle
         ";
 
         $stmt = $this->pdo->query($query);

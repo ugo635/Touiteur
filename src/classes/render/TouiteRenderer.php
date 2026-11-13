@@ -19,14 +19,21 @@ class TouiteRenderer implements Renderer {
         );
 
         $date = $this->touite->getDate();
-        $id = $this->touite->id;
-        $username = $this->touite->user->username;
+        $id = htmlspecialchars($this->touite->id, ENT_QUOTES, 'UTF-8');
+        $username = htmlspecialchars($this->touite->user->username, ENT_QUOTES, 'UTF-8');
+        $moi = htmlspecialchars($_SESSION["username"] ?? "", ENT_QUOTES, 'UTF-8');
+        $usernameUrl = urlencode($this->touite->user->username);
+
+        // Valeurs safe d'injection xss
+        $jsId = htmlspecialchars(json_encode($this->touite->id), ENT_QUOTES, 'UTF-8');
+        $jsUser = htmlspecialchars(json_encode($this->touite->user->username), ENT_QUOTES, 'UTF-8');
+        $jsMoi = htmlspecialchars(json_encode($_SESSION["username"] ?? ""), ENT_QUOTES, 'UTF-8');
         $score = $this->touite->compteurLike;
 
         $msgHtml = ($selector == 1) ? <<<HTML
             <div class="flex flex-col">
                 <p class="line-clamp-2 msg-content whitespace-pre-line">{$message}</p>
-                <button class="text-blue-700 cursor-pointer afficher-plus" onclick="afficherPlus('post-{$id}')">Afficher Plus</button>
+                <button class="text-blue-700 cursor-pointer afficher-plus" onclick="afficherPlus('post-' + {$jsId})">Afficher Plus</button>
             </div>
         HTML : <<<HTML
             <div class="flex flex-col">
@@ -34,19 +41,17 @@ class TouiteRenderer implements Renderer {
             </div>
         HTML;
 
-        $moi = $_SESSION["username"] ?? "";
-
-        $estDejaSuivi = TouiteurRepository::getInstance()->isFollowing($moi, $username)
+        $estDejaSuivi = TouiteurRepository::getInstance()->isFollowing($_SESSION["username"] ?? "", $this->touite->user->username)
             && $moi !== $username && $username !== "" && $moi !== "";
 
         $unfollowBtn = <<<HTML
-            <button class="follow-btn rounded-full bg-red-700 p-1 cursor-pointer text-white" onclick="follow('{$id}', '{$username}', '{$moi}', false)">
+            <button class="follow-btn rounded-full bg-red-700 p-1 cursor-pointer text-white" onclick="follow({$jsId}, {$jsUser}, {$jsMoi}, false)">
                 Unfollow -
             </button>
         HTML;
 
         $followBtn = <<<HTML
-            <button class="follow-btn rounded-full bg-blue-700 p-1 cursor-pointer text-white" onclick="follow('{$id}', '{$username}', '{$moi}', true)">
+            <button class="follow-btn rounded-full bg-blue-700 p-1 cursor-pointer text-white" onclick="follow({$jsId}, {$jsUser}, {$jsMoi}, true)">
                 Follow +
             </button>
         HTML;
@@ -59,7 +64,7 @@ class TouiteRenderer implements Renderer {
         $deleteBtn = "";
         if ($moi!== "" && $moi===$username) {
             $deleteBtn = <<<HTML
-                <button class="delete-btn rounded-full bg-red-900 p-1 cursor-pointer text-white" onclick="deleteTouite('{$id}')">
+                <button class="delete-btn rounded-full bg-red-900 p-1 cursor-pointer text-white" onclick="deleteTouite({$jsId})">
                     Supprimer Touite
                 </button>
             HTML;
@@ -69,13 +74,13 @@ class TouiteRenderer implements Renderer {
         $boutons = <<<HTML
             <div class="flex flex-row items-center score {$hidden}">
                 <div class="flex flex-row items-center">
-                    <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this,'{$id}', '{$username}', 1)">
+                    <button class="like w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this, {$jsId}, {$jsUser}, 1)">
                         <svg class="w-full h-full" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                             <path class="hover:fill-purple-500" fill="#FF00FF60" d="M34,9c-4.2,0-7.9,2.1-10,5.4C21.9,11.1,18.2,9,14,9C7.4,9,2,14.4,2,21c0,11.9,22,24,22,24s22-12,22-24 C46,14.4,40.6,9,34,9z"/>
                         </svg>
                     </button>
                     <span class="score-value">{$score}</span>
-                    <button class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this,'{$id}', '{$username}', -1)">
+                    <button class="dislike group w-5 h-5 m-2 hover:cursor-pointer" onclick="like(this, {$jsId}, {$jsUser}, -1)">
                         <svg class="w-full h-full" viewBox="180 90 320 310" xmlns="http://www.w3.org/2000/svg">
                             <g class="group-hover:fill-purple-500" fill="#E24B4A60" stroke="#A32D2D60" stroke-width="3" stroke-linejoin="round">
                                 <path transform="rotate(-8 340 380)" d="M340 175C340 140 310 110 270 110C225 110 200 145 200 190C200 270 290 330 340 380L332 350L352 320L322 285L350 245L320 215Z"/>
@@ -95,7 +100,7 @@ class TouiteRenderer implements Renderer {
                 <div class="flex-1">
                     <div class="flex items-center justify-between">
                         <div>
-                            <a href="?action=profile&username={$username}" class="font-bold hover:underline" >{$username}</a>
+                            <a href="?action=profile&username={$usernameUrl}" class="font-bold hover:underline" >{$username}</a>
                             <span class="text-gray-500">{$date}</span>
                         </div>
                         <div id="actionBtn-{$id}">

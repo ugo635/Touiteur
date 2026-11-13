@@ -64,8 +64,9 @@ class FollowList extends Action {
                     ? "bg-white text-black border border-gray-300 hover:text-red-600"
                     : "bg-black text-white hover:bg-gray-800";
 
+                $safeUser = urlencode($username);
                 $btn = <<<HTML
-                    <form method="POST" action="?action=$this->type&user=$username">
+                    <form method="POST" action="?action=$this->type&user=$safeUser">
                         <input type="hidden" name="target" value="$safe">
                         <button type="submit" name="follow" value="$value"
                                 class="px-3 py-1 text-sm rounded-full font-bold cursor-pointer $style">$label</button>
@@ -110,7 +111,13 @@ class FollowList extends Action {
         }
 
         // On réaffiche la liste à jour
-        header("Location: ?action=$this->type&user=$user");
-        return $this->get();
+        if ($this->type === "tag-followers") {
+            $tag = urlencode($_GET["tag"] ?? "");
+            header("Location: ?action=tag-followers&tag=$tag");
+        } else {
+            $user = urlencode($_GET["user"] ?? "");
+            header("Location: ?action={$this->type}&user=$user");
+        }
+        exit();
     }
 }
