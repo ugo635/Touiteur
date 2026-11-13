@@ -47,7 +47,7 @@ class DefaultAction extends Action {
                         $touitesHtml
                      </div>
                     <script>
-                        document.querySelector("#tagSearch").addEventListener("keypress", function(event) {
+                        document.querySelector("#tagSearch").addEventListener("keypress", (event) => {
                             if (event.key === "Enter") {
                                 window.location.href = ("?action=voir-tag&tag=" + document.querySelector("#tagSearch").value)
                             }

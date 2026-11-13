@@ -65,7 +65,7 @@ class FollowList extends Action {
                     : "bg-black text-white hover:bg-gray-800";
 
                 $btn = <<<HTML
-                    <form method="POST" action="?action=$action&user=$urlUserOuTag">
+                    <form method="POST" action="?action=$this->type&user=$username">
                         <input type="hidden" name="target" value="$safe">
                         <button type="submit" name="follow" value="$value"
                                 class="px-3 py-1 text-sm rounded-full font-bold cursor-pointer $style">$label</button>
@@ -98,6 +98,7 @@ class FollowList extends Action {
     public function post(): string {
         $current = $this->currentUsername();
         $target = $_POST['target'] ?? "";
+        $user = $_GET["user"] ?? "";
 
         if ($current !== null && $target !== "") {
             $repo = TouiteurRepository::getInstance();
@@ -109,6 +110,7 @@ class FollowList extends Action {
         }
 
         // On réaffiche la liste à jour
+        header("Location: ?action=$this->type&user=$user");
         return $this->get();
     }
 }
