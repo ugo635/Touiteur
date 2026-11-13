@@ -154,7 +154,7 @@ class TouiteurRepository {
     {
         $query = "
             SELECT id_touite, username, message,
-                   TO_CHAR(date_touite, 'DD/MM/YY') AS date_touite,
+                   TO_CHAR(date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                    NVL((select sum(likes.vote)from likes where touite.id_touite = likes.id_touite),0) as compteur_like
             FROM touite
             ORDER BY touite.date_touite DESC
@@ -523,7 +523,7 @@ class TouiteurRepository {
         // 1. Touites des personnes et tags suivis
         $query = "
         SELECT t.id_touite, t.username, t.message,
-               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                NVL(l_sum.compteur_like, 0) AS compteur_like
         FROM (
             SELECT id_touite
@@ -556,7 +556,7 @@ class TouiteurRepository {
         //reste
         $query2 = "
         SELECT t.id_touite, t.username, t.message,
-               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                NVL((
                    SELECT SUM(l.vote)
                    FROM likes l
@@ -567,7 +567,7 @@ class TouiteurRepository {
         MINUS
 
         SELECT t.id_touite, t.username, t.message,
-               TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+               TO_CHAR(t.date_touite, 'YYYY-MM-DD HH24:MI:SS') AS date_touite,
                NVL((
                    SELECT SUM(l.vote)
                    FROM likes l
