@@ -444,4 +444,45 @@ class TouiteurRepository {
         $stmt->execute(['username' => $username]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+
+    public function findPourtoi(string $username): array {
+        $query = "
+            SELECT t.id_touite, t.username, t.message,
+                   TO_CHAR(t.date_touite, 'DD/MM/YY') AS date_touite,
+                   NVL((SELECT SUM(l.vote) FROM likes l WHERE l.id_touite = t.id_touite), 0) AS compteur_like
+            FROM touite t
+            WHERE t.username IN (
+                      SELECT au.suivi
+                      FROM abonnement_utilisateur au
+                      WHERE au.abonne = :user_follow
+                  )
+               OR t.id_touite IN (
+                      SELECT tt.id_touite
+                      FROM touite_tag tt
+                      JOIN abonnement_tag ab ON tt.id_tag = ab.id_tag
+                      WHERE ab.username = :user_tag
+                  )
+            ORDER BY t.date_touite DESC, t.id_touite DESC
+        ";
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute([
+            'user_follow' => $username,
+            'user_tag' => $username
+        ]);
+
+        $touites = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $user = new User($row['USERNAME']);
+            $touites[] = new Touite(
+                $row['MESSAGE'],
+                $user,
+                $row['DATE_TOUITE'],
+                (string) $row['ID_TOUITE'],
+                (int) $row['COMPTEUR_LIKE']
+            );
+        }
+
+        return $touites;
+    }
 }
